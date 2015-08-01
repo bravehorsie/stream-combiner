@@ -1,6 +1,7 @@
 package net.grigoriadi.sc.transport;
 
 import net.grigoriadi.sc.AppConetxt;
+import net.grigoriadi.sc.domain.Item;
 import net.grigoriadi.sc.processing.IStreamParser;
 import net.grigoriadi.sc.processing.JAXBParser;
 import org.slf4j.Logger;
@@ -9,6 +10,8 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.Socket;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.BiFunction;
 
 /**
  * A client connecting to provided host and port.
@@ -31,9 +34,23 @@ public class StreamClientTask implements Runnable {
         this.port = port;
         this.id = id;
         this.streamParser = new JAXBParser(item-> {
-            AppConetxt.getInstance().getTimeQueue().add(item);
-            AppConetxt.getInstance().getLastTimes().put(getClientId(), item.getTime());
+            AppConetxt.getInstance().getClientRegistry().registerLastClientTime(getClientId(), item.getTime());
+            synchronized (this) {
+                ConcurrentHashMap<Long, Item> items = AppConetxt.getInstance().getItems();
+                Item found = items.computeIfPresent(item.getTime(), new BiFunction<Long, Item, Item>() {
+                    @Override
+                    public Item apply(Long aLong, Item aItem) {
+                        aItem.addAmount(item.getAmount());
+                        return aItem;
+                    }
+                });
+                if (found == null) {
+                    items.put(item.getTime(), item);
+                    AppConetxt.getInstance().getTimeQueue().add(item.getTime());
+                }
+            }
         });
+        AppConetxt.getInstance().getClientRegistry().registerClient(getClientId());
     }
 
     private String getClientId() {
@@ -48,8 +65,8 @@ public class StreamClientTask implements Runnable {
             clientInputStream = client.getInputStream();
             streamParser.readStream(clientInputStream);
             clientInputStream.close();
-            AppConetxt.getInstance().getLastTimes().remove(getClientId());
-            AppConetxt.getInstance().decreaseClientCount();
+            //TODO feels weird, won't work if clients would be reconnecting
+            AppConetxt.getInstance().getClientRegistry().registerLastClientTime(getClientId(), Long.MAX_VALUE);
             LOG.debug("CLOSING CLIENT: " + getClientId());
             client.close();
         } catch (IOException e) {

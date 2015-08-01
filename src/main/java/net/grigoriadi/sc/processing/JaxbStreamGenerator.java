@@ -16,17 +16,15 @@ import java.math.BigDecimal;
 import java.util.Date;
 
 /**
- * Created by rgrigoriadi on 8/1/15.
+ * Generates some data with JAXB.
  */
 public class JaxbStreamGenerator implements IStreamGenerator {
-
-    private Marshaller marshaller;
 
     @Override
     public void writeStream(OutputStream out) throws InterruptedException {
         try {
             JAXBContext jc = JAXBContext.newInstance(Item.class, Report.class);
-            marshaller = jc.createMarshaller();
+            Marshaller marshaller = jc.createMarshaller();
             marshaller.setProperty(Marshaller.JAXB_FRAGMENT, true);
             XMLStreamWriter xsw = XMLOutputFactory.newInstance().createXMLStreamWriter(out);
 
@@ -35,7 +33,7 @@ public class JaxbStreamGenerator implements IStreamGenerator {
             xsw.writeStartElement(NS, "Report");
 
             ObjectFactory objectFactory = new ObjectFactory();
-            for (int i = 0; i < 1000; i++) {
+            for (int i = 0; i < 1000 && !Thread.currentThread().isInterrupted(); i++) {
                 Item item = new Item();
                 item.setTime(new Date().getTime());
                 item.setAmount(BigDecimal.TEN);

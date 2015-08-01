@@ -2,8 +2,6 @@ package net.grigoriadi.sc;
 
 import net.grigoriadi.sc.domain.Item;
 
-import java.math.BigDecimal;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.PriorityBlockingQueue;
 
@@ -14,13 +12,11 @@ public class AppConetxt {
 
     private static final AppConetxt instance;
 
-    private volatile int clientCount;
+    private final PriorityBlockingQueue<Long> timeQueue = new PriorityBlockingQueue<>();
 
-    private final ConcurrentHashMap<Long, BigDecimal> amounts = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<Long, Item> items = new ConcurrentHashMap<>();
 
-    private final PriorityBlockingQueue<Item> timeQueue = new PriorityBlockingQueue<>();
-
-    private final Map<String, Long> lastTimes = new ConcurrentHashMap<>();
+    private final ClientDataRegistry clientRegistry = new ClientDataRegistry();
 
     static {
         instance = new AppConetxt();
@@ -34,28 +30,16 @@ public class AppConetxt {
         return instance;
     }
 
-    public int getClientCount() {
-        return clientCount;
-    }
-
-    synchronized void setClientCount(int clientCount) {
-        this.clientCount = clientCount;
-    }
-
-    public synchronized void decreaseClientCount() {
-        clientCount--;
-    }
-
-    public ConcurrentHashMap<Long, BigDecimal> getAmounts() {
-        return amounts;
-    }
-
-    public PriorityBlockingQueue<Item> getTimeQueue() {
+    public PriorityBlockingQueue<Long> getTimeQueue() {
         return timeQueue;
     }
 
-    synchronized public Map<String, Long> getLastTimes() {
-        return lastTimes;
+    public ClientDataRegistry getClientRegistry() {
+        return clientRegistry;
+    }
+
+    public ConcurrentHashMap<Long, Item> getItems() {
+        return items;
     }
 }
 

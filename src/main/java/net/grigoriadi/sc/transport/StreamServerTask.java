@@ -1,6 +1,5 @@
 package net.grigoriadi.sc.transport;
 
-import net.grigoriadi.sc.AppConetxt;
 import net.grigoriadi.sc.processing.JaxbStreamGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,11 +18,11 @@ public class StreamServerTask implements Runnable {
     private static final Logger LOG = LoggerFactory.getLogger(StreamClientTask.class);
 
     private final ExecutorService executorService;
-    private final int maxConn;
+
+    private static final int MAX_CONN = 500;
 
     public StreamServerTask() {
         this.executorService = Executors.newFixedThreadPool(10);
-        this.maxConn = AppConetxt.getInstance().getClientCount();
     }
 
     @Override
@@ -31,23 +30,26 @@ public class StreamServerTask implements Runnable {
         try {
             ServerSocket serverSocket = new ServerSocket(9123);
             int connections = 0;
-            while (connections++ < maxConn && !Thread.currentThread().isInterrupted()) {
+            while (connections++ < MAX_CONN) {
                 Socket accept = serverSocket.accept();
                 LOG.debug("Accepted connection from client");
                 executorService.execute(new StreamGeneratorTask(accept, new JaxbStreamGenerator()));
             }
 
-            //TODO delete this or handle interruption correctly.
-            executorService.shutdown();
-            try {
-                executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
             LOG.debug("CLOSING SERVER");
 //            serverSocket.close();
         } catch (IOException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    public void stopServer() {
+        //TODO delete this or handle interruption correctly.
+        executorService.shutdownNow();
+        try {
+            executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
         }
     }
 

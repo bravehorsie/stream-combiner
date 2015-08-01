@@ -25,10 +25,12 @@ public class StreamCombinerApp {
 
     public static void main(String[] args) {
         StreamCombinerApp app = new StreamCombinerApp();
-        AppConetxt.getInstance().setClientCount(args.length);
 //        app.waitForKeyPress(() -> LOG.debug("Starting server and clients..."));
         app.runServer();
-        app.runClients();
+        //in the description of the app it is actually mentioned to run clients based on N hosts:ports
+        //since dummy server generating data is listen on one single localhost port it doesn't make sense
+        //can be effortlessly changed to
+        app.runClients(args.length);
         app.runQueueWorker();
        /* app.waitForKeyPress(() -> {
             try {
@@ -44,11 +46,12 @@ public class StreamCombinerApp {
     }
 
     private void runQueueWorker() {
-        executorService.execute(new QueueWorker());
+        QueueWorker task = new QueueWorker();
+        Future<?> worker = executorService.submit(task);
     }
 
-    private void runClients() {
-        for (int i = 0; i < AppConetxt.getInstance().getClientCount(); i++) {
+    private void runClients(int count) {
+        for (int i = 0; i < count; i++) {
             LOG.debug(MessageFormat.format("Running client on [{0}:{1}], id:[{2}]", "localhost", 9123, i));
             executorService.execute(new StreamClientTask("localhost", 9123, i));
         }

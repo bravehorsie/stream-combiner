@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 
 /**
  * Item representation with hashcode.
+ * TODO consider making immutable
  */
 public class Item implements Comparable<Item> {
 
@@ -27,12 +28,16 @@ public class Item implements Comparable<Item> {
         this.time = time;
     }
 
-    public BigDecimal getAmount() {
+    public synchronized BigDecimal getAmount() {
         return amount;
     }
 
-    public void setAmount(BigDecimal amount) {
+    public synchronized void setAmount(BigDecimal amount) {
         this.amount = amount;
+    }
+
+    public synchronized void addAmount(BigDecimal addedAmount) {
+        this.amount = this.amount.add(addedAmount);
     }
 
     @Override

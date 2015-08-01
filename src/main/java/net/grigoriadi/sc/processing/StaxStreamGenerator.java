@@ -25,7 +25,7 @@ public class StaxStreamGenerator implements IStreamGenerator {
             writer.writeStartElement(NS, "Report");
             writer.writeDefaultNamespace(NS);
 
-            for (long i=0; i<1000; i++) {
+            for (long i=0; i<1000 && !Thread.currentThread().isInterrupted(); i++) {
                 writeItem(writer);
                 Thread.sleep(new Random().nextInt(5));
                 writer.flush();
