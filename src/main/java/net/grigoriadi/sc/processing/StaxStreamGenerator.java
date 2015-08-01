@@ -25,10 +25,13 @@ public class StaxStreamGenerator implements IStreamGenerator {
             writer.writeStartElement(NS, "Report");
             writer.writeDefaultNamespace(NS);
 
-            for (long i=0; i<1000 && !Thread.currentThread().isInterrupted(); i++) {
+            for (long i=0; i<100000 && !Thread.currentThread().isInterrupted(); i++) {
                 writeItem(writer);
-                Thread.sleep(new Random().nextInt(5));
                 writer.flush();
+                //desynchronize timings
+                if (i % 20 == 0) {
+                    Thread.sleep(new Random().nextInt(10));
+                }
             }
 
             writer.writeEndElement();
@@ -45,7 +48,6 @@ public class StaxStreamGenerator implements IStreamGenerator {
         writer.writeStartElement("Item");
         writer.writeStartElement("time");
         String time = String.valueOf(new Date().getTime());
-//        LOG.debug("time ==================== " + time);
         writer.writeCharacters(time);
         writer.writeEndElement();
         writer.writeStartElement("amount");

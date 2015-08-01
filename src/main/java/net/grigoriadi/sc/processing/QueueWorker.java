@@ -25,9 +25,8 @@ public class QueueWorker implements Runnable {
 
     @Override
     public void run() {
-        //TODO better name or description, or even collection
         Item lastItem = null;
-        //TODO queue worker never interrupted.
+        //TODO correct interruptin of worker
         while (true) {
             try {
                 Item item = waitForItem();
@@ -63,11 +62,9 @@ public class QueueWorker implements Runnable {
                 throw new InterruptedException();
             }*/
             Thread.sleep(10);
-            System.out.println("sleeping "+workQueue.size());
         }
         itemTime = workQueue.poll();
         itemCount++;
-        System.out.println("Polled items: "+itemCount);
         return AppConetxt.getInstance().getItems().remove(itemTime);
     }
 

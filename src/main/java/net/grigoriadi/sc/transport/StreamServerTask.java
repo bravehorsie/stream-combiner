@@ -1,6 +1,6 @@
 package net.grigoriadi.sc.transport;
 
-import net.grigoriadi.sc.processing.JaxbStreamGenerator;
+import net.grigoriadi.sc.processing.StaxStreamGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,7 +33,7 @@ public class StreamServerTask implements Runnable {
             while (connections++ < MAX_CONN) {
                 Socket accept = serverSocket.accept();
                 LOG.debug("Accepted connection from client");
-                executorService.execute(new StreamGeneratorTask(accept, new JaxbStreamGenerator()));
+                executorService.execute(new StreamGeneratorTask(accept, new StaxStreamGenerator()));
             }
 
             LOG.debug("CLOSING SERVER");
