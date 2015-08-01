@@ -14,12 +14,13 @@ import java.util.concurrent.TimeUnit;
 /**
  * Supporting server generating random streams for clients.
  */
-public class StreamServerTask implements Runnable {
+public class StreamServerTask extends Thread {
     private static final Logger LOG = LoggerFactory.getLogger(StreamClientTask.class);
 
     private final ExecutorService executorService;
 
     private static final int MAX_CONN = 500;
+    private ServerSocket serverSocket;
 
     public StreamServerTask() {
         this.executorService = Executors.newFixedThreadPool(10);
@@ -28,7 +29,7 @@ public class StreamServerTask implements Runnable {
     @Override
     public void run() {
         try {
-            ServerSocket serverSocket = new ServerSocket(9123);
+            serverSocket = new ServerSocket(9123);
             int connections = 0;
             while (connections++ < MAX_CONN) {
                 Socket accept = serverSocket.accept();
@@ -36,21 +37,30 @@ public class StreamServerTask implements Runnable {
                 executorService.execute(new StreamGeneratorTask(accept, new StaxStreamGenerator()));
             }
 
-            LOG.debug("CLOSING SERVER");
-//            serverSocket.close();
+            serverSocket.close();
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            LOG.info("Socket closed");
         }
+        LOG.debug("Exiting server");
     }
 
-    public void stopServer() {
-        //TODO delete this or handle interruption correctly.
+    @Override
+    public void interrupt() {
         executorService.shutdownNow();
         try {
             executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
+        try {
+            serverSocket.close();
+        } catch (IOException e) {
+            LOG.error("Server socket closing failed", e);
+            throw new RuntimeException(e);
+        } finally {
+            super.interrupt();
+        }
     }
+
 
 }

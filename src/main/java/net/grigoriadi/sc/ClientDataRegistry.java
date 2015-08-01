@@ -1,5 +1,8 @@
 package net.grigoriadi.sc;
 
+import net.grigoriadi.sc.domain.Client;
+
+import java.text.MessageFormat;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
@@ -9,8 +12,9 @@ import java.util.concurrent.CopyOnWriteArraySet;
  */
 public class ClientDataRegistry {
 
-    private final CopyOnWriteArraySet<String> registeredClients = new CopyOnWriteArraySet<>();
+    private final CopyOnWriteArraySet<Client> registeredClients = new CopyOnWriteArraySet<>();
     private final Map<String, Long> lastItemTimesByClient = new ConcurrentHashMap<>();
+    private volatile Runnable allClientsShutDownListener;
 
     private final Object lock = new Object();
 
@@ -21,27 +25,37 @@ public class ClientDataRegistry {
     /**
      * We need to know which clients are registered, in order to sorting data correctly.
      *
-     * @param clientName unique client id
+     * @param client unique client id
      */
-    public void registerClient(String clientName) {
+    public void registerClient(Client client) {
+        System.out.println(MessageFormat.format("REIGSTERING CLIENT ID: {0}, ACTIVE: {1}", client.getClientId(), client.isActive() ));
         synchronized (lock) {
-            if (registeredClients.contains(clientName)) {
-                throw new IllegalStateException("Client already registered!");
-            }
-            registeredClients.add(clientName);
+            registeredClients.remove(client);
+            registeredClients.add(client);
+        }
+        if (allClientsShutDown()) {
+            allClientsShutDownListener.run();
         }
     }
 
+    public void registerLastClientTime(String clientId, Long time) {
+        lastItemTimesByClient.put(clientId, time);
+    }
 
-    public void addLast(String clientName, Long time) {
-        lastItemTimesByClient.put(clientName, time);
+    public boolean allClientsShutDown() {
+        for (Client client : registeredClients) {
+            if (client.isActive()) {
+                return false;
+            }
+        }
+        return true;
     }
 
     //TODO doc
     public boolean allClientsAhead(Long workQueueHeadTime) {
         synchronized (lock) {
-            for (String client : registeredClients) {
-                Long time = lastItemTimesByClient.get(client);
+            for (Client client : registeredClients) {
+                Long time = lastItemTimesByClient.get(client.getClientId());
                 //client hasn't parsed any items yet, so time is null
                 //workQueueHeadTime is ahead of any registered client last workQueueHeadTime
                 if (time == null || workQueueHeadTime > time) {
@@ -53,8 +67,11 @@ public class ClientDataRegistry {
         return true;
     }
 
-    public void registerLastClientTime(String clientName, Long time) {
-        lastItemTimesByClient.put(clientName, time);
+    /**
+     * Effectively used once by one single thread.
+     */
+    public void setAllClientsShutDownListener(Runnable allClientsShutDownListener) {
+        this.allClientsShutDownListener = allClientsShutDownListener;
     }
 
 }

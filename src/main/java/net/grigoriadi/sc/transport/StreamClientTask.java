@@ -1,6 +1,7 @@
 package net.grigoriadi.sc.transport;
 
 import net.grigoriadi.sc.AppConetxt;
+import net.grigoriadi.sc.domain.Client;
 import net.grigoriadi.sc.processing.IStreamParser;
 import net.grigoriadi.sc.processing.ItemHandler;
 import net.grigoriadi.sc.processing.JAXBParser;
@@ -32,7 +33,7 @@ public class StreamClientTask implements Runnable {
         this.port = port;
         this.clientId = host + ":" + port + "-" + id;
         this.streamParser = new JAXBParser(new ItemHandler(clientId));
-        AppConetxt.getInstance().getClientRegistry().registerClient(clientId);
+        AppConetxt.getInstance().getClientRegistry().registerClient(new Client(clientId, true));
     }
 
     @Override
@@ -43,13 +44,13 @@ public class StreamClientTask implements Runnable {
             clientInputStream = client.getInputStream();
             streamParser.readStream(clientInputStream);
             clientInputStream.close();
-            //TODO feels weird, won't work if clients would be reconnecting
-            AppConetxt.getInstance().getClientRegistry().registerLastClientTime(clientId, Long.MAX_VALUE);
-            LOG.debug("CLOSING CLIENT: " + clientId);
             client.close();
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
+            LOG.debug("Exiting client: " + clientId);
+            AppConetxt.getInstance().getClientRegistry().registerLastClientTime(clientId, Long.MAX_VALUE);
+            AppConetxt.getInstance().getClientRegistry().registerClient(new Client(clientId, false));
             if (clientInputStream != null) {
                 try {
                     clientInputStream.close();

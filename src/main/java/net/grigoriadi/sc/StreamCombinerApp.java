@@ -21,33 +21,37 @@ public class StreamCombinerApp {
 
     private ExecutorService executorService = Executors.newFixedThreadPool(20);
 
-    private Future<?> serverTaskFuture;
+    private Thread serverThread = new StreamServerTask();
 
     public static void main(String[] args) {
         StreamCombinerApp app = new StreamCombinerApp();
-//        app.waitForKeyPress(() -> LOG.debug("Starting server and clients..."));
+        LOG.info("Press enter to continue..");
+        app.waitForKeyPress(() -> LOG.debug("Starting server and clients..."));
         app.runServer();
         //in the description of the app it is actually mentioned to run clients based on N hosts:ports
         //since dummy server generating data is listen on one single localhost port it doesn't make sense
         //can be effortlessly changed to
         app.runClients(args.length);
         app.runQueueWorker();
-       /* app.waitForKeyPress(() -> {
-            try {
-                app.serverTaskFuture.get(10, TimeUnit.MILLISECONDS);
-            } catch (InterruptedException | ExecutionException | TimeoutException e) {
-                e.printStackTrace();
-            } finally {
-                app.serverTaskFuture.cancel(true);
-                LOG.debug("Server task cancelled.");
+        app.waitForKeyPress(app::terminate);
 
-            }
-        });*/
+        LOG.debug("Exiting main thread");
+    }
+
+    private void terminate() {
+        serverThread.interrupt();
+        executorService.shutdownNow();
+        try {
+            executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     private void runQueueWorker() {
         QueueWorker task = new QueueWorker();
-        Future<?> worker = executorService.submit(task);
+        Future<?> workerFuture = executorService.submit(task);
+        AppConetxt.getInstance().getClientRegistry().setAllClientsShutDownListener(()-> workerFuture.cancel(true));
     }
 
     private void runClients(int count) {
@@ -58,7 +62,7 @@ public class StreamCombinerApp {
     }
 
     private void runServer() {
-        executorService.execute(new StreamServerTask());
+        serverThread.start();
     }
 
 
