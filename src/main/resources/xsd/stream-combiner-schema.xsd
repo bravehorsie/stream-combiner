@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns="http://grigoriadi.net/stream-combiner"
+           targetNamespace="http://grigoriadi.net/stream-combiner">
+
+    <xs:complexType name="Item">
+        <xs:sequence>
+            <xs:element name="time" type="xs:long"/>
+            <xs:element name="amount" type="xs:decimal"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="Report">
+        <xs:sequence>
+            <xs:element name="items" type="Item" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:element name="Report" type="Report"/>
+    <xs:element name="Item" type="Item"/>
+
+</xs:schema>
