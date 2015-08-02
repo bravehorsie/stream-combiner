@@ -12,7 +12,7 @@ import java.util.concurrent.PriorityBlockingQueue;
 public class AppContext {
 
     //Constant of how many items should be generated for each client.
-    public static final long GENERATED_ITEM_COUNT_PER_CONNECTION = 100000L;
+    public static final long GENERATED_ITEM_COUNT_PER_CONNECTION = 1000L;
 
     private static final AppContext instance;
 

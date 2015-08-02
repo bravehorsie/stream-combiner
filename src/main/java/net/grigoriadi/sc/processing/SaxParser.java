@@ -21,7 +21,7 @@ import java.util.function.Consumer;
  */
 public class SaxParser implements IStreamParser {
 
-    private static Logger LOG = LoggerFactory.getLogger(StaxParser.class);
+    private static Logger LOG = LoggerFactory.getLogger(SaxParser.class);
 
     private Item currentItem;
 
@@ -41,6 +41,7 @@ public class SaxParser implements IStreamParser {
             ItemSaxHaneler handler = new ItemSaxHaneler();
             parser.parse(inputStream, handler);
         } catch (ParserConfigurationException | SAXException | IOException e) {
+            LOG.error("Sax error", e);
             throw new RuntimeException(e);
         }
 

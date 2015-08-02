@@ -1,10 +1,13 @@
 package net.grigoriadi.sc.processing;
 
 import net.grigoriadi.sc.AppContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
+import java.io.IOException;
 import java.io.OutputStream;
 import java.math.BigDecimal;
 import java.util.Date;
@@ -14,6 +17,8 @@ import java.util.Date;
  */
 public class StaxStreamGenerator extends AbstractStreamGenerator {
 
+    private static Logger LOG = LoggerFactory.getLogger(StaxStreamGenerator.class);
+
     public StaxStreamGenerator() {
     }
 
@@ -22,10 +27,11 @@ public class StaxStreamGenerator extends AbstractStreamGenerator {
     }
 
     @Override
-    public void writeStream(OutputStream out) throws InterruptedException {
+    public void writeStream(OutputStream out) {
+        XMLStreamWriter writer = null;
         try {
             XMLOutputFactory output = XMLOutputFactory.newInstance();
-            XMLStreamWriter writer = output.createXMLStreamWriter(out);
+            writer = output.createXMLStreamWriter(out);
 
             writer.writeStartDocument();
             writer.setPrefix("grns", NS);
@@ -44,7 +50,17 @@ public class StaxStreamGenerator extends AbstractStreamGenerator {
             writer.writeEndDocument();
             writer.flush();
         } catch (XMLStreamException e) {
+            LOG.error("Stax error", e);
             throw new RuntimeException(e);
+        } finally {
+            try {
+                out.close();
+                if (writer != null) {
+                    writer.close();
+                }
+            } catch (XMLStreamException | IOException e) {
+                e.printStackTrace();
+            }
         }
 
     }

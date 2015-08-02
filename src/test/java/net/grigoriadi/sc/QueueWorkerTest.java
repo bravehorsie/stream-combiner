@@ -63,7 +63,6 @@ public class QueueWorkerTest {
         @Override
         public void marshallData(Item data) {
             synchronized (this) {
-                System.out.println("appending sum");
                 sum = sum.add(data.getAmount());
             }
             super.marshallData(data);
@@ -106,9 +105,7 @@ public class QueueWorkerTest {
             e.printStackTrace();
         }
 
-        System.out.println(MessageFormat.format("Worker received amount: {0}, client generated amount {1}", sumAppender.getSum(), AppContext.getInstance().getTotalGeneratedAmount()));
-
-        Assert.assertEquals(sumAppender.getSum(), AppContext.getInstance().getTotalGeneratedAmount());
+        Assert.assertEquals("Sum generated does not match sum received", sumAppender.getSum(), AppContext.getInstance().getTotalGeneratedAmount());
         Assert.assertFalse("Worker didn't exit successfully", workerThread.isAlive());
     }
 }

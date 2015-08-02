@@ -29,9 +29,6 @@ public class StreamGeneratorTask implements Runnable {
             out.close();
         } catch (IOException e) {
             throw new RuntimeException(e);
-        } catch (InterruptedException e) {
-            System.out.println("Stream generator interrupted");
-            Thread.currentThread().interrupt();
         }
         System.out.println("Exiting stream generator");
     }

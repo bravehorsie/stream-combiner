@@ -4,6 +4,8 @@ import net.grigoriadi.sc.AppContext;
 import net.grigoriadi.stream_combiner.Item;
 import net.grigoriadi.stream_combiner.ObjectFactory;
 import net.grigoriadi.stream_combiner.Report;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
@@ -12,6 +14,7 @@ import javax.xml.bind.Marshaller;
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
+import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Date;
 
@@ -20,11 +23,17 @@ import java.util.Date;
  */
 public class JaxbStreamGenerator extends AbstractStreamGenerator {
 
+    private static Logger LOG = LoggerFactory.getLogger(JaxbStreamGenerator.class);
+
     public JaxbStreamGenerator() {
     }
 
+    public JaxbStreamGenerator(IItemWrittenListener itemWrittenListener) {
+        super(itemWrittenListener);
+    }
+
     @Override
-    public void writeStream(OutputStream out) throws InterruptedException {
+    public void writeStream(OutputStream out) {
         try {
             JAXBContext jc = JAXBContext.newInstance(Item.class, Report.class);
             Marshaller marshaller = jc.createMarshaller();
@@ -52,6 +61,13 @@ public class JaxbStreamGenerator extends AbstractStreamGenerator {
             xsw.writeEndDocument();
         } catch (JAXBException | XMLStreamException e) {
             e.printStackTrace();
+            throw new RuntimeException(e);
+        } finally {
+            try {
+                out.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 }
