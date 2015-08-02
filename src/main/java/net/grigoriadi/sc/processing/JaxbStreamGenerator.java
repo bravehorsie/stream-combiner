@@ -45,7 +45,7 @@ public class JaxbStreamGenerator extends AbstractStreamGenerator {
             xsw.writeStartElement(NS, "Report");
 
             ObjectFactory objectFactory = new ObjectFactory();
-            for (int i = 0; i < AppContext.GENERATED_ITEM_COUNT_PER_CONNECTION && !Thread.currentThread().isInterrupted(); i++) {
+            for (int i = 0; i < AppContext.getInstance().getGeneratedItemCountPerConnection() && !Thread.currentThread().isInterrupted(); i++) {
                 Item item = new Item();
                 item.setTime(new Date().getTime());
                 item.setAmount(newAmount());

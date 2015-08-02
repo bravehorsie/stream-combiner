@@ -13,7 +13,6 @@ import javax.xml.parsers.SAXParserFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
-import java.text.MessageFormat;
 import java.util.function.Consumer;
 
 /**
@@ -69,7 +68,6 @@ public class SaxParser implements IStreamParser {
                     break;
                 case TIME_NAME:
                     currentItem.setTime(Long.valueOf(content));
-                    LOG.debug(MessageFormat.format("parsing time: string [{0}], int[{1}]", content, currentItem.getTime()));
                     break;
                 case AMOUNT_NAME:
                     currentItem.setAmount(new BigDecimal(content));

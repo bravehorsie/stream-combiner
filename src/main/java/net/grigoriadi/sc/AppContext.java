@@ -1,8 +1,12 @@
 package net.grigoriadi.sc;
 
 import net.grigoriadi.sc.domain.Item;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.math.BigDecimal;
+import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.PriorityBlockingQueue;
 
@@ -11,8 +15,9 @@ import java.util.concurrent.PriorityBlockingQueue;
  */
 public class AppContext {
 
-    //Constant of how many items should be generated for each client.
-    public static final long GENERATED_ITEM_COUNT_PER_CONNECTION = 1000L;
+    private static Logger LOG = LoggerFactory.getLogger(AppContext.class);
+
+    private Properties properties;
 
     private static final AppContext instance;
 
@@ -67,12 +72,33 @@ public class AppContext {
 
     /**
      * Adds an amount to total sum of generated data.
+     * This belongs to test actually, but given a character of an app, it is testing itself while running.
      * @param amount amount to add
      */
     public void addToTotalGeneratedAmount(BigDecimal amount) {
         synchronized (lock) {
             this.totalGeneratedAmount = totalGeneratedAmount.add(amount);
         }
+    }
+
+    /**
+     * How many items should be generated per client connection.
+     * Default is 100k items, therefore if ran with 10 clients, 1m items will be generated.
+     * Change properties (or test properties) file for more.
+     */
+    public long getGeneratedItemCountPerConnection() {
+        synchronized (lock) {
+            if (properties == null) {
+                properties = new Properties();
+                try {
+                    properties.load(getClass().getClassLoader().getResourceAsStream("app.properties"));
+                } catch (IOException e) {
+                    LOG.error("Error reading properties", e);
+                    throw new RuntimeException(e);
+                }
+            }
+        }
+        return Long.parseLong(properties.getProperty("GENERATED_ITEM_COUNT_PER_CONNECTION"));
     }
 }
 

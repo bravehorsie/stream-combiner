@@ -39,7 +39,7 @@ public class StaxStreamGenerator extends AbstractStreamGenerator {
             writer.writeStartElement(NS, "Report");
             writer.writeDefaultNamespace(NS);
 
-            for (long i=0; i < AppContext.GENERATED_ITEM_COUNT_PER_CONNECTION && !Thread.currentThread().isInterrupted(); i++) {
+            for (long i=0; i < AppContext.getInstance().getGeneratedItemCountPerConnection() && !Thread.currentThread().isInterrupted(); i++) {
                 writeItem(writer);
                 writer.flush();
                 desynchronizeTiming();

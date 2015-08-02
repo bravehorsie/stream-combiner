@@ -41,7 +41,7 @@ public class QueueWorkerTest {
         @Override
         public void run() {
             AppContext appContext = AppContext.getInstance();
-            for (int i = 0; i < AppContext.GENERATED_ITEM_COUNT_PER_CONNECTION; i++) {
+            for (int i = 0; i < AppContext.getInstance().getGeneratedItemCountPerConnection(); i++) {
                 Random r = new Random();
                 lastTime += r.nextInt(3);
                 BigDecimal amount = new BigDecimal(r.nextInt(101));
