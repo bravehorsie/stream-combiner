@@ -37,10 +37,8 @@ public class JsonDataMarshaller implements IDataMarshaller {
             net.grigoriadi.stream_combiner.Item item = new net.grigoriadi.stream_combiner.Item();
             item.setAmount(data.getAmount());
             item.setTime(data.getTime());
-//            report.getItems().add(item);
             try {
-//                objectFactory.createItem();
-                marshaller.marshal(item, new BufferedOutputStream(System.out));
+                marshaller.marshal(objectFactory.createItem(item), new BufferedOutputStream(System.out));
                 System.out.print("\n");
             } catch (JAXBException e) {
                 throw new RuntimeException("Error marshalling data", e);

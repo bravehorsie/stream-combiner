@@ -48,7 +48,7 @@ public abstract class AbstractStreamGenerator implements IStreamGenerator {
 
     protected void simulateOccasionalServerHang() {
         //0.0001% chance to hang a server
-        randomWait(100000, 5000);
+        randomWait(100000, 1000);
     }
 
     /**

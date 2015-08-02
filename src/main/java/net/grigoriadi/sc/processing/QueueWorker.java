@@ -18,6 +18,8 @@ public class QueueWorker implements Runnable {
 
     private final static Logger LOG = LoggerFactory.getLogger(QueueWorker.class);
 
+    private QueueWorker instance;
+
     private IDataMarshaller marshaller;
 
     private BigDecimal totalReceivedAmount = BigDecimal.ZERO;
@@ -26,11 +28,15 @@ public class QueueWorker implements Runnable {
         this.marshaller = new JsonDataMarshaller();
     }
 
+    public QueueWorker(IDataMarshaller marshaller) {
+        this.marshaller = marshaller;
+    }
+
     @Override
     public void run() {
         Item lastItem = null;
         AppContext context = AppContext.getInstance();
-        PriorityBlockingQueue<Long> workQueue = context.getTimeQueue();
+        PriorityBlockingQueue<Long> workQueue = context.getWorkQueue();
         ClientDataRegistry clientRegistry = context.getClientRegistry();
         while (workQueue.size() > 0 || !clientRegistry.allClientsShutDown()) {
             try {
@@ -38,12 +44,14 @@ public class QueueWorker implements Runnable {
                 while (((itemTime = workQueue.peek()) == null) || !clientRegistry.allClientsAhead(itemTime)) {
                     //wait for an item to become available, note that if queue is not empty
                     //it doesn't simply mean next head item should be taken.
+                    //As there is a server hang simulation (see AbstractStreamGenerator#simulateOccasionalServerHang)
+                    //this should appear in log plentifully
                     LOG.debug("Clients are too slow, waiting for them.");
                     Thread.sleep(5);
                 }
 
                 itemTime = workQueue.take();
-                Item item = context.getItems().remove(itemTime);
+                Item item = context.getItemSums().remove(itemTime);
                 if (lastItem != null && item.getTime().compareTo(lastItem.getTime()) < 0) {
                     throw new IllegalStateException(MessageFormat.format("Items in wrong order item {0}, last {1}.", item.getTime(), lastItem.getTime()));
                 }
@@ -65,8 +73,4 @@ public class QueueWorker implements Runnable {
             throw new IllegalStateException("Amount sum crash!");
         }
     }
-
-
-
-
 }

@@ -15,7 +15,7 @@ public class Item implements Comparable<Item> {
     public Item() {
     }
 
-    public Item(Long time, BigDecimal amount, String consumerId) {
+    public Item(Long time, BigDecimal amount) {
         this.time = time;
         this.amount = amount;
     }

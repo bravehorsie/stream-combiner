@@ -28,12 +28,12 @@ public class ClientDataRegistry {
      * @param client unique client id
      */
     public void registerClient(Client client) {
-        System.out.println(MessageFormat.format("REIGSTERING CLIENT ID: {0}, ACTIVE: {1}", client.getClientId(), client.isActive() ));
+        System.out.println(MessageFormat.format("REGISTERING CLIENT ID: {0}, ACTIVE: {1}", client.getClientId(), client.isActive() ));
         synchronized (lock) {
             registeredClients.remove(client);
             registeredClients.add(client);
         }
-        if (allClientsShutDown()) {
+        if (allClientsShutDown() && allClientsShutDownListener != null) {
             allClientsShutDownListener.run();
         }
     }

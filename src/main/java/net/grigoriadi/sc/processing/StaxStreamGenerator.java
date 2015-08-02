@@ -1,5 +1,7 @@
 package net.grigoriadi.sc.processing;
 
+import net.grigoriadi.sc.AppContext;
+
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
@@ -31,7 +33,7 @@ public class StaxStreamGenerator extends AbstractStreamGenerator {
             writer.writeStartElement(NS, "Report");
             writer.writeDefaultNamespace(NS);
 
-            for (long i=0; i<100000 && !Thread.currentThread().isInterrupted(); i++) {
+            for (long i=0; i < AppContext.GENERATED_ITEM_COUNT_PER_CONNECTION && !Thread.currentThread().isInterrupted(); i++) {
                 writeItem(writer);
                 writer.flush();
                 desynchronizeTiming();

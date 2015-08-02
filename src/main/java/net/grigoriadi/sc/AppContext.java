@@ -11,11 +11,14 @@ import java.util.concurrent.PriorityBlockingQueue;
  */
 public class AppContext {
 
+    //Constant of how many items should be generated for each client.
+    public static final long GENERATED_ITEM_COUNT_PER_CONNECTION = 1000L;
+
     private static final AppContext instance;
 
-    private final PriorityBlockingQueue<Long> timeQueue = new PriorityBlockingQueue<>();
+    private final PriorityBlockingQueue<Long> workQueue = new PriorityBlockingQueue<>();
 
-    private final ConcurrentHashMap<Long, Item> items = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<Long, Item> itemSums = new ConcurrentHashMap<>();
 
     private final ClientDataRegistry clientRegistry = new ClientDataRegistry();
 
@@ -35,16 +38,20 @@ public class AppContext {
         return instance;
     }
 
-    public PriorityBlockingQueue<Long> getTimeQueue() {
-        return timeQueue;
+    /**
+     * A queue of received times (represented with long) by clients.
+     * @return
+     */
+    public PriorityBlockingQueue<Long> getWorkQueue() {
+        return workQueue;
     }
 
     public ClientDataRegistry getClientRegistry() {
         return clientRegistry;
     }
 
-    public ConcurrentHashMap<Long, Item> getItems() {
-        return items;
+    public ConcurrentHashMap<Long, Item> getItemSums() {
+        return itemSums;
     }
 
     /**

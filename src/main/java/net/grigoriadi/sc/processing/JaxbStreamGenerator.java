@@ -1,5 +1,6 @@
 package net.grigoriadi.sc.processing;
 
+import net.grigoriadi.sc.AppContext;
 import net.grigoriadi.stream_combiner.Item;
 import net.grigoriadi.stream_combiner.ObjectFactory;
 import net.grigoriadi.stream_combiner.Report;
@@ -35,7 +36,7 @@ public class JaxbStreamGenerator extends AbstractStreamGenerator {
             xsw.writeStartElement(NS, "Report");
 
             ObjectFactory objectFactory = new ObjectFactory();
-            for (int i = 0; i < 1000 && !Thread.currentThread().isInterrupted(); i++) {
+            for (int i = 0; i < AppContext.GENERATED_ITEM_COUNT_PER_CONNECTION && !Thread.currentThread().isInterrupted(); i++) {
                 Item item = new Item();
                 item.setTime(new Date().getTime());
                 item.setAmount(newAmount());
@@ -45,6 +46,7 @@ public class JaxbStreamGenerator extends AbstractStreamGenerator {
                 onItemWritten(item.getTime(), item.getAmount());
                 desynchronizeTiming();
                 simulateOccasionalServerHang();
+                System.out.println();
             }
             xsw.writeEndElement();
             xsw.writeEndDocument();
