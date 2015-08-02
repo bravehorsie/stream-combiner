@@ -1,4 +1,4 @@
-package net.grigoriadi.sc.processing;
+package net.grigoriadi.sc.processing.parsing;
 
 import net.grigoriadi.sc.AppContext;
 import net.grigoriadi.sc.domain.Item;
@@ -18,7 +18,7 @@ public class ItemHandler implements Consumer<Item> {
     }
 
     /**
-     * Accepts an item from {@link IStreamParser} and propagates it in queue, registers metadatk
+     * Accepts an item from {@link IStreamParser} and propagates it in queue and registers metadata for queue worker.
      * @param item
      */
     @Override

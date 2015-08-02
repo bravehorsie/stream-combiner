@@ -1,7 +1,14 @@
 package net.grigoriadi.sc;
 
 import net.grigoriadi.sc.domain.Item;
-import net.grigoriadi.sc.processing.*;
+import net.grigoriadi.sc.processing.generation.IItemWrittenListener;
+import net.grigoriadi.sc.processing.generation.IStreamGenerator;
+import net.grigoriadi.sc.processing.generation.JaxbStreamGenerator;
+import net.grigoriadi.sc.processing.generation.StaxStreamGenerator;
+import net.grigoriadi.sc.processing.parsing.IStreamParser;
+import net.grigoriadi.sc.processing.parsing.JAXBParser;
+import net.grigoriadi.sc.processing.parsing.SaxParser;
+import net.grigoriadi.sc.processing.parsing.StaxParser;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -97,6 +104,18 @@ public class StreamProcessingTest {
         JaxbStreamGenerator generator = new JaxbStreamGenerator(itemWrittenListener);
         InputAmountCounter itemReadListener = new InputAmountCounter();
         SaxParser parser = new SaxParser(itemReadListener);
+
+        processStreams(generator, parser);
+
+        assertSumsEqual(itemWrittenListener, itemReadListener);
+    }
+
+    @Test
+    public void testStaxToJaxb() throws IOException, InterruptedException {
+        OutputAmountCounter itemWrittenListener = new OutputAmountCounter();
+        StaxStreamGenerator generator = new StaxStreamGenerator(itemWrittenListener);
+        InputAmountCounter itemReadListener = new InputAmountCounter();
+        JAXBParser parser = new JAXBParser(itemReadListener);
 
         processStreams(generator, parser);
 

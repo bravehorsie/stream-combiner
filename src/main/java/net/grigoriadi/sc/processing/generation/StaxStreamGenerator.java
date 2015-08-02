@@ -1,4 +1,4 @@
-package net.grigoriadi.sc.processing;
+package net.grigoriadi.sc.processing.generation;
 
 import net.grigoriadi.sc.AppContext;
 import org.slf4j.Logger;

@@ -1,4 +1,4 @@
-package net.grigoriadi.sc.processing;
+package net.grigoriadi.sc.processing.parsing;
 
 import net.grigoriadi.sc.domain.Item;
 import org.slf4j.Logger;

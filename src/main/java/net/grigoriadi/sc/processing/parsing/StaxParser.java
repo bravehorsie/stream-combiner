@@ -1,4 +1,4 @@
-package net.grigoriadi.sc.processing;
+package net.grigoriadi.sc.processing.parsing;
 
 import net.grigoriadi.sc.domain.Item;
 import org.slf4j.Logger;
@@ -21,9 +21,9 @@ public class StaxParser implements IStreamParser {
 
     private static Logger LOG = LoggerFactory.getLogger(StaxParser.class);
 
-    private Item currentItem;
+    private volatile Item currentItem;
 
-    private String content;
+    private volatile String content;
 
     private final Consumer<Item> consumer;
 
@@ -61,7 +61,7 @@ public class StaxParser implements IStreamParser {
                                 consumer.accept(currentItem);
                                 break;
                             case TIME_NAME:
-                                currentItem.setTime(Long.valueOf(content));
+                                currentItem.setTime(Long.valueOf(content.trim()));
 //                                LOG.debug(MessageFormat.format("parsing time: string [{0}], int[{1}]", content, currentItem.getTime()));
                                 break;
                             case AMOUNT_NAME:

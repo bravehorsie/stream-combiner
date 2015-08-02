@@ -2,7 +2,7 @@ package net.grigoriadi.sc;
 
 import net.grigoriadi.sc.domain.Client;
 import net.grigoriadi.sc.domain.Item;
-import net.grigoriadi.sc.processing.ItemHandler;
+import net.grigoriadi.sc.processing.parsing.ItemHandler;
 import net.grigoriadi.sc.processing.JsonDataMarshaller;
 import net.grigoriadi.sc.processing.QueueWorker;
 import org.junit.Assert;

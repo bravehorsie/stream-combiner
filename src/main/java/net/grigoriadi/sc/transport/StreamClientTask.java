@@ -2,9 +2,8 @@ package net.grigoriadi.sc.transport;
 
 import net.grigoriadi.sc.AppContext;
 import net.grigoriadi.sc.domain.Client;
-import net.grigoriadi.sc.processing.IStreamParser;
-import net.grigoriadi.sc.processing.ItemHandler;
-import net.grigoriadi.sc.processing.JAXBParser;
+import net.grigoriadi.sc.processing.XmlDataBindingFactory;
+import net.grigoriadi.sc.processing.parsing.IStreamParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,7 +18,6 @@ public class StreamClientTask implements Runnable {
 
     private static final Logger LOG = LoggerFactory.getLogger(StreamClientTask.class);
 
-    //TODO externalize host port and id as ClientId with hashcode
     private final String host;
 
     private final int port;
@@ -32,8 +30,9 @@ public class StreamClientTask implements Runnable {
         this.host = host;
         this.port = port;
         this.clientId = host + ":" + port + "-" + id;
-        this.streamParser = new JAXBParser(new ItemHandler(clientId));
+        this.streamParser = XmlDataBindingFactory.newStreamParser(clientId);
         AppContext.getInstance().getClientRegistry().registerClient(new Client(clientId, true));
+        LOG.debug("CREATED CLIENT "+clientId);
     }
 
     @Override
@@ -49,6 +48,7 @@ public class StreamClientTask implements Runnable {
             e.printStackTrace();
         } finally {
             LOG.debug("Exiting client: " + clientId);
+            //
             AppContext.getInstance().getClientRegistry().registerLastClientTime(clientId, Long.MAX_VALUE);
             AppContext.getInstance().getClientRegistry().registerClient(new Client(clientId, false));
             if (clientInputStream != null) {

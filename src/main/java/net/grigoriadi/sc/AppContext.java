@@ -17,6 +17,8 @@ public class AppContext {
 
     private static Logger LOG = LoggerFactory.getLogger(AppContext.class);
 
+    private static final String GENERATED_ITEM_COUNT_PER_CONNECTION = "GENERATED_ITEM_COUNT_PER_CONNECTION";
+
     private Properties properties;
 
     private static final AppContext instance;
@@ -87,6 +89,10 @@ public class AppContext {
      * Change properties (or test properties) file for more.
      */
     public long getGeneratedItemCountPerConnection() {
+        return Long.parseLong(getProperties().getProperty(GENERATED_ITEM_COUNT_PER_CONNECTION));
+    }
+
+    public Properties getProperties() {
         synchronized (lock) {
             if (properties == null) {
                 properties = new Properties();
@@ -98,7 +104,7 @@ public class AppContext {
                 }
             }
         }
-        return Long.parseLong(properties.getProperty("GENERATED_ITEM_COUNT_PER_CONNECTION"));
+        return properties;
     }
 }
 

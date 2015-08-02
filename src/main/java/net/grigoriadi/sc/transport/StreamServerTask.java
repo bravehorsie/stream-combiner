@@ -1,7 +1,5 @@
 package net.grigoriadi.sc.transport;
 
-import net.grigoriadi.sc.processing.StaxStreamGenerator;
-import net.grigoriadi.sc.processing.SumAmountsListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,6 +14,7 @@ import java.util.concurrent.TimeUnit;
  * Supporting server generating random streams for clients.
  */
 public class StreamServerTask extends Thread {
+
     private static final Logger LOG = LoggerFactory.getLogger(StreamClientTask.class);
 
     private final ExecutorService executorService;
@@ -35,12 +34,12 @@ public class StreamServerTask extends Thread {
             while (connections++ < MAX_CONN) {
                 Socket accept = serverSocket.accept();
                 LOG.debug("Accepted connection from client");
-                executorService.execute(new StreamGeneratorTask(accept, new StaxStreamGenerator(new SumAmountsListener())));
+                executorService.execute(new StreamGeneratorTask(accept));
             }
 
             serverSocket.close();
         } catch (IOException e) {
-            LOG.info("Socket closed");
+            LOG.error("Error writing to socket");
         }
         LOG.debug("Exiting server");
     }

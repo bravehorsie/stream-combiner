@@ -1,6 +1,7 @@
 package net.grigoriadi.sc.transport;
 
-import net.grigoriadi.sc.processing.IStreamGenerator;
+import net.grigoriadi.sc.processing.XmlDataBindingFactory;
+import net.grigoriadi.sc.processing.generation.IStreamGenerator;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -15,9 +16,9 @@ public class StreamGeneratorTask implements Runnable {
 
     private final IStreamGenerator streamWriter;
 
-    public StreamGeneratorTask(Socket clientSocket, IStreamGenerator streamWriter) {
+    public StreamGeneratorTask(Socket clientSocket) {
         this.clientSocket = clientSocket;
-        this.streamWriter = streamWriter;
+        this.streamWriter = XmlDataBindingFactory.newStreamGenerator();
     }
 
     @Override

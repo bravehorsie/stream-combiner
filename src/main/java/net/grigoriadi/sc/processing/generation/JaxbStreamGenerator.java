@@ -1,4 +1,4 @@
-package net.grigoriadi.sc.processing;
+package net.grigoriadi.sc.processing.generation;
 
 import net.grigoriadi.sc.AppContext;
 import net.grigoriadi.stream_combiner.Item;
