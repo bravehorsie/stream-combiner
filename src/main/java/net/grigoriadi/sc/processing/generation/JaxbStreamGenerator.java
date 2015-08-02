@@ -34,11 +34,12 @@ public class JaxbStreamGenerator extends AbstractStreamGenerator {
 
     @Override
     public void writeStream(OutputStream out) {
+        XMLStreamWriter xsw = null;
         try {
             JAXBContext jc = JAXBContext.newInstance(Item.class, Report.class);
             Marshaller marshaller = jc.createMarshaller();
             marshaller.setProperty(Marshaller.JAXB_FRAGMENT, true);
-            XMLStreamWriter xsw = XMLOutputFactory.newInstance().createXMLStreamWriter(out);
+            xsw = XMLOutputFactory.newInstance().createXMLStreamWriter(out);
 
             xsw.writeStartDocument();
             xsw.setDefaultNamespace(NS);
@@ -51,7 +52,7 @@ public class JaxbStreamGenerator extends AbstractStreamGenerator {
                 item.setAmount(newAmount());
                 JAXBElement<Item> element = objectFactory.createItem(item);
                 marshaller.marshal(element, xsw);
-                xsw.flush();
+//                xsw.flush();
                 onItemWritten(item.getTime(), item.getAmount());
                 desynchronizeTiming();
                 simulateOccasionalServerHang();
@@ -59,13 +60,19 @@ public class JaxbStreamGenerator extends AbstractStreamGenerator {
             }
             xsw.writeEndElement();
             xsw.writeEndDocument();
+            xsw.flush();
         } catch (JAXBException | XMLStreamException e) {
             e.printStackTrace();
             throw new RuntimeException(e);
         } finally {
             try {
+                if (xsw != null) {
+                    xsw.close();
+                }
                 out.close();
             } catch (IOException e) {
+                e.printStackTrace();
+            } catch (XMLStreamException e) {
                 e.printStackTrace();
             }
         }

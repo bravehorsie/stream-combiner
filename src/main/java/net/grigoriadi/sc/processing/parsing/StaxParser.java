@@ -21,9 +21,9 @@ public class StaxParser implements IStreamParser {
 
     private static Logger LOG = LoggerFactory.getLogger(StaxParser.class);
 
-    private volatile Item currentItem;
+    private Item currentItem;
 
-    private volatile String content;
+    private StringBuilder content = new StringBuilder();
 
     private final Consumer<Item> consumer;
 
@@ -50,27 +50,26 @@ public class StaxParser implements IStreamParser {
                         break;
 
                     case XMLStreamConstants.CHARACTERS:
-                        content = reader.getText();
+                        content.append(reader.getText().trim());
                         break;
+
                     case XMLStreamConstants.END_ELEMENT:
                         switch (reader.getLocalName()) {
                             case ITEM_NAME:
-                                if (currentItem == null) {
-                                    throw new IllegalStateException("Cannot add null.");
-                                }
                                 consumer.accept(currentItem);
+                                content = new StringBuilder();
                                 break;
                             case TIME_NAME:
-                                currentItem.setTime(Long.valueOf(content.trim()));
-//                                LOG.debug(MessageFormat.format("parsing time: string [{0}], int[{1}]", content, currentItem.getTime()));
+                                currentItem.setTime(Long.valueOf(content.toString()));
+                                content = new StringBuilder();
                                 break;
                             case AMOUNT_NAME:
-                                currentItem.setAmount(new BigDecimal(content));
+                                currentItem.setAmount(new BigDecimal(content.toString()));
+                                content = new StringBuilder();
                                 break;
                         }
                         break;
                     case XMLStreamConstants.END_DOCUMENT:
-                        LOG.debug("END DOCUMENT REACHED");
                         break;
                 }
             }

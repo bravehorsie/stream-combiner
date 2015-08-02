@@ -24,7 +24,7 @@ public class SaxParser implements IStreamParser {
 
     private Item currentItem;
 
-    private String content;
+    private StringBuilder content = new StringBuilder();
 
     private final Consumer<Item> consumer;
 
@@ -61,23 +61,23 @@ public class SaxParser implements IStreamParser {
         public void endElement(String uri, String localName, String qName) throws SAXException {
             switch (qName) {
                 case ITEM_NAME:
-                    if (currentItem == null) {
-                        throw new IllegalStateException("Cannot add null.");
-                    }
                     consumer.accept(currentItem);
+                    content = new StringBuilder();
                     break;
                 case TIME_NAME:
-                    currentItem.setTime(Long.valueOf(content));
+                    currentItem.setTime(Long.valueOf(content.toString()));
+                    content = new StringBuilder();
                     break;
                 case AMOUNT_NAME:
-                    currentItem.setAmount(new BigDecimal(content));
+                    currentItem.setAmount(new BigDecimal(content.toString()));
+                    content = new StringBuilder();
                     break;
             }
         }
 
         @Override
         public void characters(char[] ch, int start, int length) throws SAXException {
-            content = String.copyValueOf(ch, start, length).trim();
+            content.append(String.copyValueOf(ch, start, length).trim());
         }
     }
 }
