@@ -6,12 +6,18 @@ import javax.xml.stream.XMLStreamWriter;
 import java.io.OutputStream;
 import java.math.BigDecimal;
 import java.util.Date;
-import java.util.Random;
 
 /**
  * Generates dummy stream for clients.
  */
-public class StaxStreamGenerator implements IStreamGenerator {
+public class StaxStreamGenerator extends AbstractStreamGenerator {
+
+    public StaxStreamGenerator() {
+    }
+
+    public StaxStreamGenerator(IItemWrittenListener itemWrittenListener) {
+        super(itemWrittenListener);
+    }
 
     @Override
     public void writeStream(OutputStream out) throws InterruptedException {
@@ -25,13 +31,10 @@ public class StaxStreamGenerator implements IStreamGenerator {
             writer.writeStartElement(NS, "Report");
             writer.writeDefaultNamespace(NS);
 
-            for (long i=0; i<10000 && !Thread.currentThread().isInterrupted(); i++) {
+            for (long i=0; i<100000 && !Thread.currentThread().isInterrupted(); i++) {
                 writeItem(writer);
                 writer.flush();
-                //desynchronize timings
-                if (i % 100 == 0) {
-                    Thread.sleep(new Random().nextInt(10));
-                }
+                randomWait(i);
             }
 
             writer.writeEndElement();
@@ -47,12 +50,14 @@ public class StaxStreamGenerator implements IStreamGenerator {
     private void writeItem(XMLStreamWriter writer) throws XMLStreamException {
         writer.writeStartElement("Item");
         writer.writeStartElement("time");
-        String time = String.valueOf(new Date().getTime());
-        writer.writeCharacters(time);
+        Long time = new Date().getTime();
+        writer.writeCharacters(String.valueOf(time));
         writer.writeEndElement();
         writer.writeStartElement("amount");
-        writer.writeCharacters(BigDecimal.TEN.toString());
+        BigDecimal amount = BigDecimal.TEN;
+        writer.writeCharacters(amount.toString());
         writer.writeEndElement();
         writer.writeEndElement();
+        onItemWritten(time, amount);
     }
 }

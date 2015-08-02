@@ -1,6 +1,7 @@
 package net.grigoriadi.sc.transport;
 
 import net.grigoriadi.sc.processing.StaxStreamGenerator;
+import net.grigoriadi.sc.processing.SumAmountsListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,7 +35,7 @@ public class StreamServerTask extends Thread {
             while (connections++ < MAX_CONN) {
                 Socket accept = serverSocket.accept();
                 LOG.debug("Accepted connection from client");
-                executorService.execute(new StreamGeneratorTask(accept, new StaxStreamGenerator()));
+                executorService.execute(new StreamGeneratorTask(accept, new StaxStreamGenerator(new SumAmountsListener())));
             }
 
             serverSocket.close();

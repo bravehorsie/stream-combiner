@@ -51,7 +51,7 @@ public class StreamCombinerApp {
     private void runQueueWorker() {
         QueueWorker task = new QueueWorker();
         Future<?> workerFuture = executorService.submit(task);
-        AppConetxt.getInstance().getClientRegistry().setAllClientsShutDownListener(()-> workerFuture.cancel(true));
+        AppContext.getInstance().getClientRegistry().setAllClientsShutDownListener(()-> workerFuture.cancel(true));
     }
 
     private void runClients(int count) {

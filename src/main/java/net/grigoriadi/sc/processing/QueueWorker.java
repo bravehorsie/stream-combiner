@@ -1,6 +1,6 @@
 package net.grigoriadi.sc.processing;
 
-import net.grigoriadi.sc.AppConetxt;
+import net.grigoriadi.sc.AppContext;
 import net.grigoriadi.sc.ClientDataRegistry;
 import net.grigoriadi.sc.domain.Item;
 import org.slf4j.Logger;
@@ -31,26 +31,28 @@ public class QueueWorker implements Runnable {
     @Override
     public void run() {
         Item lastItem = null;
-        PriorityBlockingQueue<Long> workQueue = AppConetxt.getInstance().getTimeQueue();
-        ClientDataRegistry clientRegistry = AppConetxt.getInstance().getClientRegistry();
+        AppContext context = AppContext.getInstance();
+        PriorityBlockingQueue<Long> workQueue = context.getTimeQueue();
+        ClientDataRegistry clientRegistry = context.getClientRegistry();
         while (workQueue.size() > 0 || !clientRegistry.allClientsShutDown()) {
             try {
                 Long itemTime;
                 while (((itemTime = workQueue.peek()) == null) || !clientRegistry.allClientsAhead(itemTime)) {
                     //wait for an item to become available, note that if queue is not empty
                     //it doesn't simply mean next head item should be taken.
-                    Thread.sleep(10);
-                    System.out.println("SLEEP");
+                    Thread.sleep(1);
+                    LOG.debug("Teh workers are too slow, waiting for them.");
                 }
                 itemTime = workQueue.take();
                 itemCount++;
-                Item item = AppConetxt.getInstance().getItems().remove(itemTime);
+                Item item = context.getItems().remove(itemTime);
 
                 if (lastItem != null && item.getTime().compareTo(lastItem.getTime()) < 0) {
                     throw new IllegalStateException(MessageFormat.format("Items in wrong order item {0}, last {1}.", item.getTime(), lastItem.getTime()));
                 }
 
-                pushData(item);
+                marshaller.marshallData(item);
+                totalReceivedAmount = totalReceivedAmount.add(item.getAmount());
                 lastItem = item;
             } catch (InterruptedException e) {
                 //Continue on main loop receiving interrupt.
@@ -60,14 +62,14 @@ public class QueueWorker implements Runnable {
             }
         }
         LOG.info("Queue worker exited successfully.");
+        LOG.info(MessageFormat.format("=========================== Total generated amount: [{0}], total received amount: [{1}] ===========================", context.getTotalGeneratedAmount(), totalReceivedAmount));
+        if (!context.getTotalGeneratedAmount().equals(totalReceivedAmount)) {
+            LOG.error("Sum of amounts received is not equal sum of amounts sent!! This should not happen even if manually interrupted!");
+            throw new IllegalStateException("Amount sum crash!");
+        }
     }
 
 
-    private void pushData(Item item) {
-        marshaller.marshallData(item);
-        totalReceivedAmount = totalReceivedAmount.add(item.getAmount());
-        System.out.println("total amount: " + totalReceivedAmount + " polled count " + itemCount);
-    }
 
 
 }

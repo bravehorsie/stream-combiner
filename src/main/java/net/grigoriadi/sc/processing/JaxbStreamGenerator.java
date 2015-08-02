@@ -18,7 +18,10 @@ import java.util.Date;
 /**
  * Generates some data with JAXB.
  */
-public class JaxbStreamGenerator implements IStreamGenerator {
+public class JaxbStreamGenerator extends AbstractStreamGenerator {
+
+    public JaxbStreamGenerator() {
+    }
 
     @Override
     public void writeStream(OutputStream out) throws InterruptedException {
@@ -40,6 +43,7 @@ public class JaxbStreamGenerator implements IStreamGenerator {
                 JAXBElement<Item> element = objectFactory.createItem(item);
                 marshaller.marshal(element, xsw);
                 xsw.flush();
+                onItemWritten(item.getTime(), item.getAmount());
             }
             xsw.writeEndElement();
             xsw.writeEndDocument();

@@ -1,6 +1,6 @@
 package net.grigoriadi.sc.transport;
 
-import net.grigoriadi.sc.AppConetxt;
+import net.grigoriadi.sc.AppContext;
 import net.grigoriadi.sc.domain.Client;
 import net.grigoriadi.sc.processing.IStreamParser;
 import net.grigoriadi.sc.processing.ItemHandler;
@@ -33,7 +33,7 @@ public class StreamClientTask implements Runnable {
         this.port = port;
         this.clientId = host + ":" + port + "-" + id;
         this.streamParser = new JAXBParser(new ItemHandler(clientId));
-        AppConetxt.getInstance().getClientRegistry().registerClient(new Client(clientId, true));
+        AppContext.getInstance().getClientRegistry().registerClient(new Client(clientId, true));
     }
 
     @Override
@@ -49,8 +49,8 @@ public class StreamClientTask implements Runnable {
             e.printStackTrace();
         } finally {
             LOG.debug("Exiting client: " + clientId);
-            AppConetxt.getInstance().getClientRegistry().registerLastClientTime(clientId, Long.MAX_VALUE);
-            AppConetxt.getInstance().getClientRegistry().registerClient(new Client(clientId, false));
+            AppContext.getInstance().getClientRegistry().registerLastClientTime(clientId, Long.MAX_VALUE);
+            AppContext.getInstance().getClientRegistry().registerClient(new Client(clientId, false));
             if (clientInputStream != null) {
                 try {
                     clientInputStream.close();

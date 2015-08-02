@@ -3,7 +3,7 @@ package net.grigoriadi.sc.processing;
 import java.io.OutputStream;
 
 /**
- * Created by rgrigoriadi on 7/30/15.
+ * Stream generation interface.
  */
 public interface IStreamGenerator {
 
