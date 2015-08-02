@@ -34,7 +34,8 @@ public class StaxStreamGenerator extends AbstractStreamGenerator {
             for (long i=0; i<100000 && !Thread.currentThread().isInterrupted(); i++) {
                 writeItem(writer);
                 writer.flush();
-                randomWait(i);
+                desynchronizeTiming();
+                simulateOccasionalServerHang();
             }
 
             writer.writeEndElement();
@@ -54,7 +55,7 @@ public class StaxStreamGenerator extends AbstractStreamGenerator {
         writer.writeCharacters(String.valueOf(time));
         writer.writeEndElement();
         writer.writeStartElement("amount");
-        BigDecimal amount = BigDecimal.TEN;
+        BigDecimal amount = newAmount();
         writer.writeCharacters(amount.toString());
         writer.writeEndElement();
         writer.writeEndElement();

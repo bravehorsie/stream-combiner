@@ -20,8 +20,6 @@ public class QueueWorker implements Runnable {
 
     private IDataMarshaller marshaller;
 
-    private long itemCount;
-
     private BigDecimal totalReceivedAmount = BigDecimal.ZERO;
 
     public QueueWorker() {
@@ -40,13 +38,12 @@ public class QueueWorker implements Runnable {
                 while (((itemTime = workQueue.peek()) == null) || !clientRegistry.allClientsAhead(itemTime)) {
                     //wait for an item to become available, note that if queue is not empty
                     //it doesn't simply mean next head item should be taken.
-                    Thread.sleep(1);
-                    LOG.debug("Teh workers are too slow, waiting for them.");
+                    LOG.debug("Clients are too slow, waiting for them.");
+                    Thread.sleep(5);
                 }
-                itemTime = workQueue.take();
-                itemCount++;
-                Item item = context.getItems().remove(itemTime);
 
+                itemTime = workQueue.take();
+                Item item = context.getItems().remove(itemTime);
                 if (lastItem != null && item.getTime().compareTo(lastItem.getTime()) < 0) {
                     throw new IllegalStateException(MessageFormat.format("Items in wrong order item {0}, last {1}.", item.getTime(), lastItem.getTime()));
                 }

@@ -24,24 +24,48 @@ public abstract class AbstractStreamGenerator implements IStreamGenerator {
     }
 
     protected void onItemWritten(Long time, BigDecimal amount) {
-        LOG.debug("Generated item time: {0}, amount:{1}", time, amount);
         if (itemWrittenListener != null) {
             itemWrittenListener.itemWritten(time, amount);
         }
     }
 
+    protected BigDecimal newAmount() {
+        Random r = new Random();
+        int i = r.nextInt(11);
+        if (r.nextInt(11) % 10 == 0) {
+            i = i * -1;
+        }
+        return new BigDecimal(i * 10);
+    }
+
     /**
      * Wait a bit for timing desynchronization.
-     * @param itemCount row count of a processed item
+     * Simulates that streams for clients go occasionally ahead of each other
      */
-    protected void randomWait(long itemCount) {
-        if (itemCount % 100 == 0) {
+    protected void desynchronizeTiming() {
+        randomWait(100, 10);
+    }
+
+    protected void simulateOccasionalServerHang() {
+        //0.0001% chance to hang a server
+        randomWait(100000, 5000);
+    }
+
+    /**
+     * Occasionally sleeps for a random period of time.
+     * @param probability the higher number the lesser chance (for probability 100 there is a 1% chance to proc)
+     * @param maxSleepTime maximal bound of a chosen sleep in milliseconds
+     */
+    private void randomWait(int probability, int maxSleepTime) {
+        Random random = new Random();
+        if (random.nextInt(probability + 1) % probability == 0) {
             try {
-                Thread.sleep(new Random().nextInt(10));
+                Thread.sleep(random.nextInt(maxSleepTime));
             } catch (InterruptedException e) {
                 //called from runnable
                 Thread.currentThread().interrupt();
             }
         }
+
     }
 }

@@ -24,8 +24,22 @@ public class StreamCombinerApp {
     private Thread serverThread = new StreamServerTask();
 
     public static void main(String[] args) {
+        if (args.length == 0) {
+            System.out.println("Usage:");
+            System.out.println("Run a program with arguments in format \"host:port\" separated by spaces.");
+            System.out.println("As many clients will be spawned, as many words separated by spaces are provided" +
+                    " for a single localhost:constant_port.");
+            System.out.println("(Since app is actually runs one generating server on a localhost single port, " +
+                    "you can type any words separated by spaces).");
+            System.exit(0);
+        }
         StreamCombinerApp app = new StreamCombinerApp();
-        LOG.info("Press enter to continue..");
+        System.out.println("Pressing enter will start a server, clients and a single queue worker, generating JSON.");
+        System.out.println("Pressing enter again will terminate a server, all clients and stop a queue worker after queue is drained.");
+        System.out.println("Sum of amounts received, should always equal sum of amounts generated, " +
+                "besides the fact if application is terminated before completion.");
+        System.out.println("Generating data amount per client connection could be specified by a constant in AppContext." +
+                " (Defaulted to 100.000 per client)");
         app.waitForKeyPress(() -> LOG.debug("Starting server and clients..."));
         app.runServer();
         //in the description of the app it is actually mentioned to run clients based on N hosts:ports
@@ -68,7 +82,7 @@ public class StreamCombinerApp {
 
     private void waitForKeyPress(Runnable afterKeyPress) {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-        System.out.print("Enter something key to continue:");
+        System.out.print("Press Enter to continue:");
         try {
             br.readLine();
             afterKeyPress.run();

@@ -12,7 +12,6 @@ import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 import java.io.OutputStream;
-import java.math.BigDecimal;
 import java.util.Date;
 
 /**
@@ -39,11 +38,13 @@ public class JaxbStreamGenerator extends AbstractStreamGenerator {
             for (int i = 0; i < 1000 && !Thread.currentThread().isInterrupted(); i++) {
                 Item item = new Item();
                 item.setTime(new Date().getTime());
-                item.setAmount(BigDecimal.TEN);
+                item.setAmount(newAmount());
                 JAXBElement<Item> element = objectFactory.createItem(item);
                 marshaller.marshal(element, xsw);
                 xsw.flush();
                 onItemWritten(item.getTime(), item.getAmount());
+                desynchronizeTiming();
+                simulateOccasionalServerHang();
             }
             xsw.writeEndElement();
             xsw.writeEndDocument();
