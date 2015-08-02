@@ -85,20 +85,11 @@ public class QueueWorkerTest {
         QueueWorker worker = new QueueWorker(sumAppender);
         Thread workerThread = new Thread(worker);
 
-        /*AppContext.getInstance().getClientRegistry().setAllClientsShutDownListener(()->{
-            try {
-                Thread.sleep(5000);
-                workerThread.interrupt();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        });*/
         for (int i = 0; i < 5; i++) {
             executorService.execute(new DataGeneratorTask());
         }
 
         workerThread.start();
-
 
         try {
             Thread.sleep(1000);
@@ -109,8 +100,15 @@ public class QueueWorkerTest {
             e.printStackTrace();
         }
 
-        System.out.println(MessageFormat.format("Worker received amount: {0}, client generated amount {1}", sumAppender.getSum(), AppContext.getInstance().getTotalGeneratedAmount()));
-        Assert.assertEquals(sumAppender.getSum(), AppContext.getInstance().getTotalGeneratedAmount());
+        try {
+            workerThread.join(Long.MAX_VALUE);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
 
+        System.out.println(MessageFormat.format("Worker received amount: {0}, client generated amount {1}", sumAppender.getSum(), AppContext.getInstance().getTotalGeneratedAmount()));
+
+        Assert.assertEquals(sumAppender.getSum(), AppContext.getInstance().getTotalGeneratedAmount());
+        Assert.assertFalse("Worker didn't exit successfully", workerThread.isAlive());
     }
 }

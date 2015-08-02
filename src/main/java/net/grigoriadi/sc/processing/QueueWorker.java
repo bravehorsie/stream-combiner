@@ -18,8 +18,6 @@ public class QueueWorker implements Runnable {
 
     private final static Logger LOG = LoggerFactory.getLogger(QueueWorker.class);
 
-    private QueueWorker instance;
-
     private IDataMarshaller marshaller;
 
     private BigDecimal totalReceivedAmount = BigDecimal.ZERO;
