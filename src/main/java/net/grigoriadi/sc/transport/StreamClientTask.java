@@ -31,30 +31,31 @@ public class StreamClientTask implements Runnable {
         this.clientId = host + ":" + port + "-" + id;
         this.streamParser = XmlDataBindingFactory.newStreamParser(clientId);
         AppContext.getInstance().getClientRegistry().registerClient(clientId);
-        LOG.debug("CREATED CLIENT "+clientId);
+        LOG.debug("CREATED CLIENT " + clientId);
     }
 
     @Override
     public void run() {
         InputStream clientInputStream = null;
+        Socket client = null;
         try {
-            Socket client = new Socket(host, port);
+            client = new Socket(host, port);
             clientInputStream = client.getInputStream();
             streamParser.readStream(clientInputStream);
             clientInputStream.close();
-            client.close();
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
+            try {
+                if (clientInputStream != null) {
+                    clientInputStream.close();
+                }
+                client.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
             LOG.debug("Exiting client: " + clientId);
             AppContext.getInstance().getClientRegistry().deregisterClient(clientId);
-            if (clientInputStream != null) {
-                try {
-                    clientInputStream.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
         }
     }
 }

@@ -26,14 +26,22 @@ public class StreamGeneratorTask implements Runnable {
 
     @Override
     public void run() {
+        OutputStream out = null;
         try {
-            OutputStream out = clientSocket.getOutputStream();
+            out = clientSocket.getOutputStream();
             streamWriter.writeStream(out);
             out.flush();
-            out.close();
         } catch (IOException e) {
             LOG.error("Error writing data", e);
             throw new RuntimeException(e);
+        } finally {
+            if (out != null) {
+                try {
+                    out.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
         }
         LOG.info("Exiting stream generator");
     }
