@@ -2,19 +2,19 @@ package net.grigoriadi.sc;
 
 import net.grigoriadi.sc.domain.Client;
 import net.grigoriadi.sc.domain.Item;
-import net.grigoriadi.sc.processing.parsing.ItemHandler;
 import net.grigoriadi.sc.processing.JsonDataMarshaller;
 import net.grigoriadi.sc.processing.QueueWorker;
+import net.grigoriadi.sc.processing.parsing.ItemHandler;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.math.BigDecimal;
 import java.text.MessageFormat;
-import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
@@ -42,9 +42,8 @@ public class QueueWorkerTest {
         public void run() {
             AppContext appContext = AppContext.getInstance();
             for (int i = 0; i < AppContext.getInstance().getGeneratedItemCountPerConnection(); i++) {
-                Random r = new Random();
-                lastTime += r.nextInt(3);
-                BigDecimal amount = new BigDecimal(r.nextInt(101));
+                lastTime += ThreadLocalRandom.current().nextInt(3);
+                BigDecimal amount = new BigDecimal(ThreadLocalRandom.current().nextInt(101));
                 Item item = new Item(lastTime, amount);
                 itemConsumer.accept(item);
                 appContext.getClientRegistry().registerLastClientTime(id, lastTime);

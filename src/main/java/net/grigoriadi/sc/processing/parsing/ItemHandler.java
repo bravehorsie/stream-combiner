@@ -3,6 +3,7 @@ package net.grigoriadi.sc.processing.parsing;
 import net.grigoriadi.sc.AppContext;
 import net.grigoriadi.sc.domain.Item;
 
+import java.math.BigDecimal;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
@@ -19,6 +20,8 @@ public class ItemHandler implements Consumer<Item> {
 
     /**
      * Accepts an item from {@link IStreamParser} and propagates it in queue and registers metadata for queue worker.
+     * If there is a record for a given time in Items map, just sum amounts.
+     * If item with given time is new, put it to map and propagate time of it to a queue for further processing.
      * @param item
      */
     @Override
@@ -27,11 +30,11 @@ public class ItemHandler implements Consumer<Item> {
         ConcurrentHashMap<Long, Item> items = AppContext.getInstance().getItemSums();
         items.compute(item.getTime(), (aLong, aItem) -> {
             if (aItem == null) {
-                AppContext.getInstance().getWorkQueue().add(item.getTime());
+                AppContext.getInstance().getWorkQueue().put(item.getTime());
                 return item;
             } else {
-                aItem.addAmount(item.getAmount());
-                return aItem;
+                BigDecimal addedAmount = aItem.getAmount().add(item.getAmount());
+                return new Item(aItem.getTime(), addedAmount);
             }
         });
     }

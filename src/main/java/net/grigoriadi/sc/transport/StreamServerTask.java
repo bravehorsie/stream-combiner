@@ -1,5 +1,6 @@
 package net.grigoriadi.sc.transport;
 
+import net.grigoriadi.sc.processing.generation.StreamGeneratorTask;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,7 +24,7 @@ public class StreamServerTask extends Thread {
     private ServerSocket serverSocket;
 
     public StreamServerTask() {
-        this.executorService = Executors.newFixedThreadPool(10);
+        this.executorService = Executors.newFixedThreadPool(MAX_CONN);
     }
 
     @Override
@@ -44,6 +45,9 @@ public class StreamServerTask extends Thread {
         LOG.debug("Exiting server");
     }
 
+    /**
+     * Close the socket, otherwise it will hang on accept().
+     */
     @Override
     public void interrupt() {
         executorService.shutdownNow();

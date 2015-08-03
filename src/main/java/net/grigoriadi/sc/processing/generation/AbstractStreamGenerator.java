@@ -1,17 +1,13 @@
 package net.grigoriadi.sc.processing.generation;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.math.BigDecimal;
 import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Abstract class for stream data generation.
  */
 public abstract class AbstractStreamGenerator implements IStreamGenerator {
-
-    private static Logger LOG = LoggerFactory.getLogger(AbstractStreamGenerator.class);
 
     private final IItemWrittenListener itemWrittenListener;
 
@@ -30,7 +26,7 @@ public abstract class AbstractStreamGenerator implements IStreamGenerator {
     }
 
     protected BigDecimal newAmount() {
-        Random r = new Random();
+        Random r = ThreadLocalRandom.current();
         int i = r.nextInt(11);
         if (r.nextInt(11) % 10 == 0) {
             i = i * -1;
@@ -47,17 +43,17 @@ public abstract class AbstractStreamGenerator implements IStreamGenerator {
     }
 
     protected void simulateOccasionalServerHang() {
-        //0.0001% chance to hang a server
+        //0.001% chance to hang a server for a short period on writing of each item.
         randomWait(100000, 1000);
     }
 
     /**
      * Occasionally sleeps for a random period of time.
-     * @param probability the higher number the lesser chance (for probability 100 there is a 1% chance to proc)
+     * @param probability the higher number, the lesser chance (for probability 100 there is a 1% chance to proc)
      * @param maxSleepTime maximal bound of a chosen sleep in milliseconds
      */
     private void randomWait(int probability, int maxSleepTime) {
-        Random random = new Random();
+        Random random = ThreadLocalRandom.current();
         if (random.nextInt(probability + 1) % probability == 0) {
             try {
                 Thread.sleep(random.nextInt(maxSleepTime));

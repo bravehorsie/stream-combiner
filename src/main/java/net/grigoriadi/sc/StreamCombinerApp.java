@@ -19,9 +19,11 @@ public class StreamCombinerApp {
 
     private static Logger LOG = LoggerFactory.getLogger(StreamCombinerApp.class);
 
-    private ExecutorService executorService = Executors.newFixedThreadPool(20);
+    private ExecutorService clientsExecutorService = Executors.newFixedThreadPool(20);
 
     private Thread serverThread = new StreamServerTask();
+
+    private Thread queueWorkerThread;
 
     public static void main(String[] args) {
         if (args.length == 0) {
@@ -59,28 +61,37 @@ public class StreamCombinerApp {
 
     private void terminate() {
         serverThread.interrupt();
-        executorService.shutdownNow();
+        clientsExecutorService.shutdownNow();
         try {
-            executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+            clientsExecutorService.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
     }
 
+    /**
+     * Queue worker is run in separate thread, so it is not interrupted when executor service is requested to shutdown.
+     */
     private void runQueueWorker() {
         QueueWorker task = new QueueWorker();
-        Future<?> workerFuture = executorService.submit(task);
-        //if worker is ahead of all clients and is blocking on queue.take() notify it to interrupt.
-        AppContext.getInstance().getClientRegistry().setAllClientsShutDownListener(()-> workerFuture.cancel(true));
+        FutureTask<?> future = new FutureTask<Void>(task, null);
+        queueWorkerThread = new Thread(future);
+        queueWorkerThread.start();
     }
 
+    /**
+     * Run as many clients as requested.
+     */
     private void runClients(int count) {
         for (int i = 0; i < count; i++) {
             LOG.debug(MessageFormat.format("Running client on [{0}:{1}], id:[{2}]", "localhost", 9123, i));
-            executorService.execute(new StreamClientTask("localhost", 9123, i));
+            clientsExecutorService.execute(new StreamClientTask("localhost", 9123, i));
         }
     }
 
+    /**
+     * Server thread has its own interrupt implementation.
+     */
     private void runServer() {
         serverThread.start();
     }

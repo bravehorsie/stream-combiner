@@ -19,7 +19,7 @@ public class XmlDataBindingFactory {
     public synchronized static IStreamGenerator newStreamGenerator() {
         String xmlDataGeneratorProperty = (String) AppContext.getInstance().getProperties().get(XML_DATA_GENERATOR_TYPE);
         checkProperty(xmlDataGeneratorProperty);
-        switch (SupportedXmlBindingTypes.valueOf(xmlDataGeneratorProperty)) {
+        switch (SupportedXmlBindingTypes.valueOf(xmlDataGeneratorProperty.toUpperCase())) {
             case JAXB:
                 return new JaxbStreamGenerator(new SumAmountsListener());
             case STAX:
@@ -33,7 +33,7 @@ public class XmlDataBindingFactory {
     public synchronized static IStreamParser newStreamParser(String clientId) {
         String xmlDataGeneratorProperty = (String) AppContext.getInstance().getProperties().get(XML_DATA_PARSER_TYPE);
         checkProperty(xmlDataGeneratorProperty);
-        switch (SupportedXmlBindingTypes.valueOf(xmlDataGeneratorProperty)) {
+        switch (SupportedXmlBindingTypes.valueOf(xmlDataGeneratorProperty.toUpperCase())) {
             case JAXB:
                 return new JAXBParser(new ItemHandler(clientId));
             case STAX:

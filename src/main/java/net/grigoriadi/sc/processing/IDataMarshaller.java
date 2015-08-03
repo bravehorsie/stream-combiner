@@ -3,7 +3,7 @@ package net.grigoriadi.sc.processing;
 import net.grigoriadi.sc.domain.Item;
 
 /**
- * Marshalls data out.
+ * Marshall data out.
  */
 public interface IDataMarshaller {
 

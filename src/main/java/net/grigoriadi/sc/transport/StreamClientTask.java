@@ -48,7 +48,6 @@ public class StreamClientTask implements Runnable {
             e.printStackTrace();
         } finally {
             LOG.debug("Exiting client: " + clientId);
-            //
             AppContext.getInstance().getClientRegistry().registerLastClientTime(clientId, Long.MAX_VALUE);
             AppContext.getInstance().getClientRegistry().registerClient(new Client(clientId, false));
             if (clientInputStream != null) {

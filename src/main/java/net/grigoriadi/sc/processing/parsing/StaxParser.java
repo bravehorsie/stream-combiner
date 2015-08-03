@@ -60,11 +60,11 @@ public class StaxParser implements IStreamParser {
                                 content = new StringBuilder();
                                 break;
                             case TIME_NAME:
-                                currentItem.setTime(Long.valueOf(content.toString()));
+                                currentItem = new Item(Long.valueOf(content.toString()), currentItem.getAmount());
                                 content = new StringBuilder();
                                 break;
                             case AMOUNT_NAME:
-                                currentItem.setAmount(new BigDecimal(content.toString()));
+                                currentItem = new Item(currentItem.getTime(), new BigDecimal(content.toString()));
                                 content = new StringBuilder();
                                 break;
                         }
@@ -74,7 +74,7 @@ public class StaxParser implements IStreamParser {
                 }
             }
         } catch (XMLStreamException e) {
-            e.printStackTrace();
+            LOG.error("Error parsing data with STaX", e);
             throw new RuntimeException("Parsing stream error", e);
         } finally {
             try {

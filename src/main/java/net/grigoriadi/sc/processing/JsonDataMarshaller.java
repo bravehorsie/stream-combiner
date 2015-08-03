@@ -4,6 +4,8 @@ import net.grigoriadi.sc.domain.Item;
 import net.grigoriadi.stream_combiner.ObjectFactory;
 import net.grigoriadi.stream_combiner.Report;
 import org.eclipse.persistence.jaxb.JAXBContextProperties;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -13,9 +15,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Marshalls data as JSON, using EclipseLink JAXB.
+ * Marshall data as JSON, using EclipseLink JAXB.
  */
 public class JsonDataMarshaller implements IDataMarshaller {
+
+    private static final Logger LOG = LoggerFactory.getLogger(JsonDataMarshaller.class);
 
     private Marshaller marshaller;
 
@@ -28,7 +32,8 @@ public class JsonDataMarshaller implements IDataMarshaller {
             JAXBContext jc = JAXBContext.newInstance(new Class[]{net.grigoriadi.stream_combiner.Item.class, Report.class}, properties);
             marshaller = jc.createMarshaller();
         } catch (JAXBException e) {
-            throw new RuntimeException("Error creating JAXB context", e);
+            LOG.error("Error creating JAXB context", e);
+            throw new RuntimeException(e);
         }
     }
 
@@ -41,6 +46,7 @@ public class JsonDataMarshaller implements IDataMarshaller {
                 marshaller.marshal(objectFactory.createItem(item), new BufferedOutputStream(System.out));
                 System.out.print("\n");
             } catch (JAXBException e) {
+                LOG.error("Error marshalling data with MOXy", e);
                 throw new RuntimeException("Error marshalling data", e);
             }
     }

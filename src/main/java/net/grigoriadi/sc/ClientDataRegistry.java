@@ -14,7 +14,6 @@ public class ClientDataRegistry {
 
     private final CopyOnWriteArraySet<Client> registeredClients = new CopyOnWriteArraySet<>();
     private final Map<String, Long> lastItemTimesByClient = new ConcurrentHashMap<>();
-    private volatile Runnable allClientsShutDownListener;
 
     private final Object lock = new Object();
 
@@ -33,9 +32,6 @@ public class ClientDataRegistry {
             registeredClients.remove(client);
             registeredClients.add(client);
         }
-        if (allClientsShutDown() && allClientsShutDownListener != null) {
-            allClientsShutDownListener.run();
-        }
     }
 
     public void registerLastClientTime(String clientId, Long time) {
@@ -51,7 +47,15 @@ public class ClientDataRegistry {
         return true;
     }
 
-    //TODO doc
+    /**
+     * All clients have parsed data with times past given time.
+     *
+     * Eg. if provided workQueueHeadTime time is 10, all clients must have received at least time 11 to return true.
+     * (Data stream per client are ordered by contract).
+     *
+     * @param workQueueHeadTime time to check against all clients
+     * @return true if all clients have received data with time after provided time in argument
+     */
     public boolean allClientsAhead(Long workQueueHeadTime) {
         synchronized (lock) {
             for (Client client : registeredClients) {
@@ -65,13 +69,6 @@ public class ClientDataRegistry {
 
         }
         return true;
-    }
-
-    /**
-     * Effectively used once by one single thread.
-     */
-    public void setAllClientsShutDownListener(Runnable allClientsShutDownListener) {
-        this.allClientsShutDownListener = allClientsShutDownListener;
     }
 
 }

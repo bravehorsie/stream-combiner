@@ -13,10 +13,25 @@ import java.util.concurrent.PriorityBlockingQueue;
 /**
  * A worker polling items from an priority queue, and putting them for marshalling.
  * This worker is designed as a single thread worker only.
+ *
+ * Given the requirement that data on output stream are ordered, rule for item being available to poll from a queue is:
+ * All running clients parsing data, "are ahead" of the head item in the queue.
+ *
+ * Eg. if head item time is 10, worker is waiting for all running clients to have received at least time 11.
+ * (Data stream per client are ordered by contract).
+ * @see ClientDataRegistry#allClientsAhead(Long)
+ * When client is done processing stream it sets Long.MAX_VALUE as its last received date, so the queue can be drained to tail.
+ *
+ * Time instants in queue are "distinct", they not duplicate each other.
+ * Sum amount for each item is held in "Item Sum" map in app context. Where sums are pushed by clients.
  */
 public class QueueWorker implements Runnable {
 
     private final static Logger LOG = LoggerFactory.getLogger(QueueWorker.class);
+
+    private static final long SLEEP_TIME = 5L;
+
+    private static final long THREE_MINUTES_TIMEOUT = 1000 * 60 * 3;
 
     private IDataMarshaller marshaller;
 
@@ -39,15 +54,23 @@ public class QueueWorker implements Runnable {
         while (workQueue.size() > 0 || !clientRegistry.allClientsShutDown()) {
             try {
                 Long itemTime;
+                Long totalWaitingTime = 0L;
                 while (((itemTime = workQueue.peek()) == null) || !clientRegistry.allClientsAhead(itemTime)) {
                     //wait for an item to become available, note that if queue is not empty
                     //it doesn't simply mean next head item should be taken.
                     //As there is a server hang simulation (see AbstractStreamGenerator#simulateOccasionalServerHang)
-                    //this should appear in log plentifully
+                    //next line should appear in log plentifully
                     LOG.debug("Clients are too slow, waiting for them.");
-                    Thread.sleep(5);
+                    Thread.sleep(SLEEP_TIME);
+                    totalWaitingTime += SLEEP_TIME;
+                    if (totalWaitingTime >= THREE_MINUTES_TIMEOUT) {
+                        //prevent OOM in case one or more clients are hanging
+                        LOG.error("One or more clients hanging too long, exiting worker thread.");
+                        return;
+                    }
                 }
 
+                //given above while waiting condition, we should actually never get blocked on take().
                 itemTime = workQueue.take();
                 Item item = context.getItemSums().remove(itemTime);
                 //Self integrity test. This belongs to junit, but given the character of the app, it doesn't hurt
@@ -59,10 +82,10 @@ public class QueueWorker implements Runnable {
                 totalReceivedAmount = totalReceivedAmount.add(item.getAmount());
                 lastItem = item;
             } catch (InterruptedException e) {
-                //Continue on main loop receiving interrupt.
-                //It is not necessary to interrupt from outside, when all clients are down, cycle will end anyway.
-                //Still this thread is interrupted when all clients are shut down, to stay formally correct.
-                LOG.info(MessageFormat.format("Received \"all clients down event\" from app, allClientsShutDown: {0}, workQueueSize: {1}", clientRegistry.allClientsShutDown(), workQueue.size()));
+                //Since main loop is driven by the fact, that there are o more active producers of the queue,
+                //and take() should never block, interrupt from outside is not expected and would make no sense.
+                //Continue on main loop receiving interrupt anyway.
+                LOG.info(MessageFormat.format("Not expected to receive interrupt here, allClientsShutDown: {0}, workQueueSize: {1}", clientRegistry.allClientsShutDown(), workQueue.size()));
             }
         }
         LOG.info("Queue worker exited successfully.");

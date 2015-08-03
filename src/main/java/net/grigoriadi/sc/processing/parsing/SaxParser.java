@@ -40,7 +40,7 @@ public class SaxParser implements IStreamParser {
             ItemSaxHaneler handler = new ItemSaxHaneler();
             parser.parse(inputStream, handler);
         } catch (ParserConfigurationException | SAXException | IOException e) {
-            LOG.error("Sax error", e);
+            LOG.error("Error parsing data with SAX", e);
             throw new RuntimeException(e);
         }
 
@@ -65,11 +65,11 @@ public class SaxParser implements IStreamParser {
                     content = new StringBuilder();
                     break;
                 case TIME_NAME:
-                    currentItem.setTime(Long.valueOf(content.toString()));
+                    currentItem = new Item(Long.valueOf(content.toString()), currentItem.getAmount());
                     content = new StringBuilder();
                     break;
                 case AMOUNT_NAME:
-                    currentItem.setAmount(new BigDecimal(content.toString()));
+                    currentItem = new Item(currentItem.getTime(), new BigDecimal(content.toString()));
                     content = new StringBuilder();
                     break;
             }

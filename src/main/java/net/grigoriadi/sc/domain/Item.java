@@ -3,8 +3,7 @@ package net.grigoriadi.sc.domain;
 import java.math.BigDecimal;
 
 /**
- * Item representation with hashcode.
- * TODO consider making immutable
+ * Immutable item representation with hashcode.
  */
 public class Item implements Comparable<Item> {
 
@@ -24,20 +23,8 @@ public class Item implements Comparable<Item> {
         return time;
     }
 
-    public void setTime(Long time) {
-        this.time = time;
-    }
-
-    public synchronized BigDecimal getAmount() {
+    public BigDecimal getAmount() {
         return amount;
-    }
-
-    public synchronized void setAmount(BigDecimal amount) {
-        this.amount = amount;
-    }
-
-    public synchronized void addAmount(BigDecimal addedAmount) {
-        this.amount = this.amount.add(addedAmount);
     }
 
     @Override
