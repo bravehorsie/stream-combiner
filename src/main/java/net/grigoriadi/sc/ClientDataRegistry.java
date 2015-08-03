@@ -1,7 +1,5 @@
 package net.grigoriadi.sc;
 
-import net.grigoriadi.sc.domain.Client;
-
 import java.text.MessageFormat;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -12,7 +10,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
  */
 public class ClientDataRegistry {
 
-    private final CopyOnWriteArraySet<Client> registeredClients = new CopyOnWriteArraySet<>();
+    private final CopyOnWriteArraySet<String> registeredClients = new CopyOnWriteArraySet<>();
     private final Map<String, Long> lastItemTimesByClient = new ConcurrentHashMap<>();
 
     private final Object lock = new Object();
@@ -23,23 +21,19 @@ public class ClientDataRegistry {
 
     /**
      * We need to know which clients are active, in order to sorting data correctly.
-     * @param client unique client id with active state
+     * @param clientId unique client id with active state
      */
-    public void registerClient(Client client) {
-        System.out.println(MessageFormat.format("REGISTERING CLIENT ID: {0}, ACTIVE: {1}", client.getClientId(), client.isActive() ));
-        synchronized (lock) {
-            registeredClients.remove(client);
-            registeredClients.add(client);
-        }
+    public void registerClient(String clientId) {
+        System.out.println(MessageFormat.format("REGISTERING CLIENT ID: {0}", clientId));
+        registeredClients.add(clientId);
+    }
+
+    public void deregisterClient(String clientId) {
+        registeredClients.remove(clientId);
     }
 
     public boolean allClientsShutDown() {
-        for (Client client : registeredClients) {
-            if (client.isActive()) {
-                return false;
-            }
-        }
-        return true;
+        return registeredClients.size() == 0;
     }
 
     /**
@@ -63,8 +57,8 @@ public class ClientDataRegistry {
      */
     public boolean allClientsAhead(Long workQueueHeadTime) {
         synchronized (lock) {
-            for (Client client : registeredClients) {
-                Long time = lastItemTimesByClient.get(client.getClientId());
+            for (String clientId : registeredClients) {
+                Long time = lastItemTimesByClient.get(clientId);
                 //client hasn't parsed any items yet, so time is null
                 //workQueueHeadTime is ahead of any registered client last workQueueHeadTime
                 if (time == null || workQueueHeadTime >= time) {

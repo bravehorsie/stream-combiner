@@ -1,6 +1,5 @@
 package net.grigoriadi.sc;
 
-import net.grigoriadi.sc.domain.Client;
 import net.grigoriadi.sc.domain.Item;
 import net.grigoriadi.sc.processing.IDataMarshaller;
 import net.grigoriadi.sc.processing.JsonDataMarshaller;
@@ -38,7 +37,7 @@ public class QueueWorkerTest {
 
         public DataGeneratorTask() {
             itemConsumer = new ItemHandler(id);
-            AppContext.getInstance().getClientRegistry().registerClient(new Client(id, true));
+            AppContext.getInstance().getClientRegistry().registerClient(id);
         }
 
         public DataGeneratorTask(Runnable hangingSimulator) {
@@ -60,8 +59,7 @@ public class QueueWorkerTest {
                 appContext.getClientRegistry().registerLastClientTime(id, lastTime);
                 appContext.addToTotalGeneratedAmount(amount);
             }
-            appContext.getClientRegistry().registerLastClientTime(id, Long.MAX_VALUE);
-            appContext.getClientRegistry().registerClient(new Client(id, false));
+            appContext.getClientRegistry().deregisterClient(id);
             System.out.println(MessageFormat.format("Client id {0} exited successfully.", id));
         }
     }

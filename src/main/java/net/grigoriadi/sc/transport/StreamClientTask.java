@@ -1,7 +1,6 @@
 package net.grigoriadi.sc.transport;
 
 import net.grigoriadi.sc.AppContext;
-import net.grigoriadi.sc.domain.Client;
 import net.grigoriadi.sc.processing.XmlDataBindingFactory;
 import net.grigoriadi.sc.processing.parsing.IStreamParser;
 import org.slf4j.Logger;
@@ -31,7 +30,7 @@ public class StreamClientTask implements Runnable {
         this.port = port;
         this.clientId = host + ":" + port + "-" + id;
         this.streamParser = XmlDataBindingFactory.newStreamParser(clientId);
-        AppContext.getInstance().getClientRegistry().registerClient(new Client(clientId, true));
+        AppContext.getInstance().getClientRegistry().registerClient(clientId);
         LOG.debug("CREATED CLIENT "+clientId);
     }
 
@@ -48,8 +47,7 @@ public class StreamClientTask implements Runnable {
             e.printStackTrace();
         } finally {
             LOG.debug("Exiting client: " + clientId);
-            AppContext.getInstance().getClientRegistry().registerLastClientTime(clientId, Long.MAX_VALUE);
-            AppContext.getInstance().getClientRegistry().registerClient(new Client(clientId, false));
+            AppContext.getInstance().getClientRegistry().deregisterClient(clientId);
             if (clientInputStream != null) {
                 try {
                     clientInputStream.close();
