@@ -25,7 +25,7 @@ public class AppContext {
 
     private final PriorityBlockingQueue<Long> workQueue = new PriorityBlockingQueue<>();
 
-    private final ConcurrentHashMap<Long, Item> itemSums = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<Long, Item> summedItems = new ConcurrentHashMap<>();
 
     private final ClientDataRegistry clientRegistry = new ClientDataRegistry();
 
@@ -47,18 +47,24 @@ public class AppContext {
 
     /**
      * A queue of received times (represented with long) by clients.
-     * @return
+     * After a time is polled by a worker from this queue, Item is fetched and removed from {@link AppContext#summedItems}.
      */
     public PriorityBlockingQueue<Long> getWorkQueue() {
         return workQueue;
     }
 
+    /**
+     * Register of running clients.
+     */
     public ClientDataRegistry getClientRegistry() {
         return clientRegistry;
     }
 
-    public ConcurrentHashMap<Long, Item> getItemSums() {
-        return itemSums;
+    /**
+     * Main memory buffer of received items. Amounts are merged for same time instants to this map.
+     */
+    public ConcurrentHashMap<Long, Item> getSummedItems() {
+        return summedItems;
     }
 
     /**

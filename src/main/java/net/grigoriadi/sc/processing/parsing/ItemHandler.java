@@ -27,7 +27,7 @@ public class ItemHandler implements Consumer<Item> {
     @Override
     public void accept(Item item) {
         AppContext.getInstance().getClientRegistry().registerLastClientTime(clientId, item.getTime());
-        ConcurrentHashMap<Long, Item> items = AppContext.getInstance().getItemSums();
+        ConcurrentHashMap<Long, Item> items = AppContext.getInstance().getSummedItems();
         items.compute(item.getTime(), (aLong, aItem) -> {
             if (aItem == null) {
                 AppContext.getInstance().getWorkQueue().put(item.getTime());

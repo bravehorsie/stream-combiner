@@ -11,14 +11,15 @@ import java.text.MessageFormat;
 import java.util.concurrent.PriorityBlockingQueue;
 
 /**
- * A worker polling items from an priority queue, and putting them for marshalling.
- * This worker is designed as a single thread worker only.
+ * A worker polling candidates from an priority queue, and putting them on for marshalling.
+ * This worker is designed as a single consumer worker only.
  *
- * Given the requirement that data on output stream are ordered, rule for item being available to poll from a queue is:
- * All running clients parsing data, "are ahead" of the head item in the queue.
+ * Given the requirement that data on output stream are ordered, rule for candidate being available to poll from a queue is:
+ * All running clients parsing data, "are ahead" of the head candidate in the queue.
  *
- * Eg. if head item time is 10, worker is waiting for all running clients to have received at least time 11.
- * (Data stream per client are ordered by contract).
+ * Eg. if head candidate time is 10, worker is waiting for all running clients to have received at least time 11.
+ * Only after reaching this state worker polls head candidate.
+ * (Data stream per client is ordered by contract).
  * @see ClientDataRegistry#allClientsAhead(Long)
  * When client is done processing stream it sets Long.MAX_VALUE as its last received date, so the queue can be drained to tail.
  *
@@ -72,7 +73,7 @@ public class QueueWorker implements Runnable {
 
                 //given above while waiting condition, we should actually never get blocked on take().
                 itemTime = workQueue.take();
-                Item item = context.getItemSums().remove(itemTime);
+                Item item = context.getSummedItems().remove(itemTime);
                 //Self integrity test. This belongs to junit, but given the character of the app, it doesn't hurt while running main
                 if (lastItem != null && item.getTime().compareTo(lastItem.getTime()) < 0) {
                     throw new IllegalStateException(MessageFormat.format("Items in wrong order item {0}, last {1}.", item.getTime(), lastItem.getTime()));

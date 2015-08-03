@@ -53,8 +53,8 @@ public class QueueWorkerTest {
                 if (hangingSimulator != null) {
                     hangingSimulator.run();
                 }
-                lastTime += ThreadLocalRandom.current().nextInt(3);
-                BigDecimal amount = new BigDecimal(ThreadLocalRandom.current().nextInt(101));
+                lastTime += ThreadLocalRandom.current().nextInt(100);
+                BigDecimal amount = new BigDecimal(ThreadLocalRandom.current().nextInt(100));
                 Item item = new Item(lastTime, amount);
                 itemConsumer.accept(item);
                 appContext.getClientRegistry().registerLastClientTime(id, lastTime);
@@ -135,6 +135,7 @@ public class QueueWorkerTest {
         try {
             Thread.sleep(1000);
             executorService.shutdown();
+            //runs actually much faster, may need update if item count per client is drastically increased in app.properties
             executorService.awaitTermination(2 * 60, TimeUnit.SECONDS);
             System.out.println("exe service awaited");
         } catch (InterruptedException e) {

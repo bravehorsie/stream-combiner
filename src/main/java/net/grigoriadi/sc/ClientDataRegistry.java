@@ -22,9 +22,8 @@ public class ClientDataRegistry {
     }
 
     /**
-     * We need to know which clients are registered, in order to sorting data correctly.
-     *
-     * @param client unique client id
+     * We need to know which clients are active, in order to sorting data correctly.
+     * @param client unique client id with active state
      */
     public void registerClient(Client client) {
         System.out.println(MessageFormat.format("REGISTERING CLIENT ID: {0}, ACTIVE: {1}", client.getClientId(), client.isActive() ));
@@ -34,10 +33,6 @@ public class ClientDataRegistry {
         }
     }
 
-    public void registerLastClientTime(String clientId, Long time) {
-        lastItemTimesByClient.put(clientId, time);
-    }
-
     public boolean allClientsShutDown() {
         for (Client client : registeredClients) {
             if (client.isActive()) {
@@ -45,6 +40,16 @@ public class ClientDataRegistry {
             }
         }
         return true;
+    }
+
+    /**
+     * Each client puts entry here after each item parsed from stream.
+     * Given the contract that data are ordered in each stream, we can than calculate
+     * if next candidate is safe to pe polled from queue.
+     * {@see ClientDataRegistry#allClientsAhead}
+     */
+    public void registerLastClientTime(String clientId, Long time) {
+        lastItemTimesByClient.put(clientId, time);
     }
 
     /**
