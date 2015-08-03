@@ -62,7 +62,7 @@ public class ClientDataRegistry {
                 Long time = lastItemTimesByClient.get(client.getClientId());
                 //client hasn't parsed any items yet, so time is null
                 //workQueueHeadTime is ahead of any registered client last workQueueHeadTime
-                if (time == null || workQueueHeadTime > time) {
+                if (time == null || workQueueHeadTime >= time) {
                     return false;
                 }
             }

@@ -74,7 +74,7 @@ public class AppContext {
 
     /**
      * Adds an amount to total sum of generated data.
-     * This belongs to test actually, but given a character of an app, it is testing itself while running.
+     * This belongs to tests actually, but given a character of an app, I considered better testing itself also while running.
      * @param amount amount to add
      */
     public void addToTotalGeneratedAmount(BigDecimal amount) {

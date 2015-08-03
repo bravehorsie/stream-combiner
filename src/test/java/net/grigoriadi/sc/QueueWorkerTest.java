@@ -2,6 +2,7 @@ package net.grigoriadi.sc;
 
 import net.grigoriadi.sc.domain.Client;
 import net.grigoriadi.sc.domain.Item;
+import net.grigoriadi.sc.processing.IDataMarshaller;
 import net.grigoriadi.sc.processing.JsonDataMarshaller;
 import net.grigoriadi.sc.processing.QueueWorker;
 import net.grigoriadi.sc.processing.parsing.ItemHandler;
@@ -33,15 +34,25 @@ public class QueueWorkerTest {
 
         private Consumer<Item> itemConsumer;
 
+        private Runnable hangingSimulator;
+
         public DataGeneratorTask() {
             itemConsumer = new ItemHandler(id);
             AppContext.getInstance().getClientRegistry().registerClient(new Client(id, true));
+        }
+
+        public DataGeneratorTask(Runnable hangingSimulator) {
+            this();
+            this.hangingSimulator = hangingSimulator;
         }
 
         @Override
         public void run() {
             AppContext appContext = AppContext.getInstance();
             for (int i = 0; i < AppContext.getInstance().getGeneratedItemCountPerConnection(); i++) {
+                if (hangingSimulator != null) {
+                    hangingSimulator.run();
+                }
                 lastTime += ThreadLocalRandom.current().nextInt(3);
                 BigDecimal amount = new BigDecimal(ThreadLocalRandom.current().nextInt(101));
                 Item item = new Item(lastTime, amount);
@@ -55,16 +66,29 @@ public class QueueWorkerTest {
         }
     }
 
-    private static class SumCounterDataMarshaller extends JsonDataMarshaller {
+
+    /**
+     * Effectively single threaded singleton.
+     * Checks, that items comes ordered, and counts total sum of items processed,
+     * so test can assert it with total sum generated.
+     */
+    private static class DecorateCheckOrderAndCountSumMarshaller implements IDataMarshaller {
 
         private BigDecimal sum = BigDecimal.ZERO;
+
+        private Long lastReceivedTime = -1L;
+
+        private IDataMarshaller delegate = new JsonDataMarshaller();
 
         @Override
         public void marshallData(Item data) {
             synchronized (this) {
                 sum = sum.add(data.getAmount());
+                //Asserts order of items.
+                Assert.assertTrue(MessageFormat.format("Wrong item order: Last received time {0}, item time {1}", lastReceivedTime, data.getTime()), lastReceivedTime < data.getTime());
+                lastReceivedTime = data.getTime();
             }
-            super.marshallData(data);
+            delegate.marshallData(data);
         }
 
         public synchronized BigDecimal getSum() {
@@ -76,15 +100,34 @@ public class QueueWorkerTest {
     public void before() {
     }
 
+    /**
+     * Testing threads thoroughly seems to be a lot of fun, I am not sure yet how to properly do that.
+     * This test tests priority order and total sum received is equal to total sum sent.
+     * It also simulates clients random hanging.
+     */
     @Test
     public void testReceiveData() {
 
-        SumCounterDataMarshaller sumAppender = new SumCounterDataMarshaller();
+        DecorateCheckOrderAndCountSumMarshaller sumAppender = new DecorateCheckOrderAndCountSumMarshaller();
         QueueWorker worker = new QueueWorker(sumAppender);
         Thread workerThread = new Thread(worker);
 
-        for (int i = 0; i < 5; i++) {
-            executorService.execute(new DataGeneratorTask());
+        //run 20 clients, 10.000 items will be generated per client as defined in src/test/properties/app.properties
+        for (int i = 0; i < 20; i++) {
+            Runnable clientHangSimulator = null;
+            if (i % 5 == 0) {
+                //simulate occasional client hang for four of the total twenty clients and check worker is not biased.
+                clientHangSimulator = () -> {
+                    if (ThreadLocalRandom.current().nextInt(1001) % 1000 == 0) {
+                        try {
+                            Thread.sleep(500L);
+                        } catch (InterruptedException e) {
+                            Thread.currentThread().interrupt();
+                        }
+                    }
+                };
+            }
+            executorService.execute(new DataGeneratorTask(clientHangSimulator));
         }
 
         workerThread.start();
@@ -92,7 +135,7 @@ public class QueueWorkerTest {
         try {
             Thread.sleep(1000);
             executorService.shutdown();
-            executorService.awaitTermination(30, TimeUnit.SECONDS);
+            executorService.awaitTermination(2 * 60, TimeUnit.SECONDS);
             System.out.println("exe service awaited");
         } catch (InterruptedException e) {
             e.printStackTrace();

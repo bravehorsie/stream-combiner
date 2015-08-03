@@ -73,7 +73,7 @@ public class QueueWorker implements Runnable {
                 //given above while waiting condition, we should actually never get blocked on take().
                 itemTime = workQueue.take();
                 Item item = context.getItemSums().remove(itemTime);
-                //Self integrity test. This belongs to junit, but given the character of the app, it doesn't hurt
+                //Self integrity test. This belongs to junit, but given the character of the app, it doesn't hurt while running main
                 if (lastItem != null && item.getTime().compareTo(lastItem.getTime()) < 0) {
                     throw new IllegalStateException(MessageFormat.format("Items in wrong order item {0}, last {1}.", item.getTime(), lastItem.getTime()));
                 }
@@ -90,7 +90,7 @@ public class QueueWorker implements Runnable {
         }
         LOG.info("Queue worker exited successfully.");
         LOG.info(MessageFormat.format("=========================== Total generated amount: [{0}], total received amount: [{1}] ===========================", context.getTotalGeneratedAmount(), totalReceivedAmount));
-        //Self integrity test. This belongs to junit, but given the character of the app, it doesn't hurt
+        //Self integrity test. This belongs to junit, but given the character of the app, it doesn't hurt while running main
         if (!context.getTotalGeneratedAmount().equals(totalReceivedAmount)) {
             LOG.error("Sum of amounts received is not equal sum of amounts sent!! This should not happen even if manually interrupted!");
             throw new IllegalStateException("Amount sum crash!");
