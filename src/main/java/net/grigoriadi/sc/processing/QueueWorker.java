@@ -21,7 +21,7 @@ import java.util.concurrent.PriorityBlockingQueue;
  * Only after reaching this state worker polls head candidate.
  * (Data stream per client is ordered by contract).
  * @see ClientDataRegistry#allClientsAhead(Long)
- * When client is done processing stream it sets Long.MAX_VALUE as its last received date, so the queue can be drained to tail.
+ * When client is done processing it is unregistered, so the queue can be drained to tail.
  *
  * Time instants in queue are "distinct", they not duplicate each other.
  * Sum amount for each item is held in "Item Sum" map in app context. Where sums are pushed by clients.
