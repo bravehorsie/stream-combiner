@@ -12,10 +12,7 @@ import org.junit.Test;
 import java.math.BigDecimal;
 import java.text.MessageFormat;
 import java.util.UUID;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadLocalRandom;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.function.Consumer;
 
 /**
@@ -23,7 +20,11 @@ import java.util.function.Consumer;
  */
 public class QueueWorkerTest {
 
+    private final static int CLIENT_COUNT = 20;
+
     private ExecutorService executorService = Executors.newFixedThreadPool(100);
+
+    private static CyclicBarrier barrier = new CyclicBarrier(CLIENT_COUNT + 1);
 
     private static class DataGeneratorTask implements Runnable {
 
@@ -48,6 +49,12 @@ public class QueueWorkerTest {
         @Override
         public void run() {
             AppContext appContext = AppContext.getInstance();
+            try {
+                barrier.await();
+            } catch (InterruptedException | BrokenBarrierException e) {
+                e.printStackTrace();
+                Thread.currentThread().interrupt();
+            }
             for (int i = 0; i < AppContext.getInstance().getGeneratedItemCountPerConnection(); i++) {
                 if (hangingSimulator != null) {
                     hangingSimulator.run();
@@ -61,6 +68,7 @@ public class QueueWorkerTest {
             }
             appContext.getClientRegistry().deregisterClient(id);
             System.out.println(MessageFormat.format("Client id {0} exited successfully.", id));
+            System.out.println("appContext = " + appContext.getWorkQueue().size());
         }
     }
 
@@ -131,12 +139,14 @@ public class QueueWorkerTest {
         workerThread.start();
 
         try {
+            barrier.await();
+            System.out.println("Fired test");
             Thread.sleep(1000);
             executorService.shutdown();
             //runs actually much faster, may need update if item count per client is drastically increased in app.properties
             executorService.awaitTermination(2 * 60, TimeUnit.SECONDS);
             System.out.println("exe service awaited");
-        } catch (InterruptedException e) {
+        } catch (InterruptedException | BrokenBarrierException e) {
             e.printStackTrace();
         }
 
